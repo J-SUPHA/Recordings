@@ -92,8 +92,8 @@ class AudioRecorder:
             while self.running:
                 data = self.stream.read(self.chunk)
                 self.frames.append(data)
-        finally:
-            print("They cant hurt me. They cant hurt me. they cant hurt me")
+        except Exception as e:
+            print(f"Error: {e}")
             self.stop_recording()
 
 if __name__ == "__main__":
