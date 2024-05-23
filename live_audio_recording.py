@@ -4,6 +4,7 @@ import subprocess
 import signal
 import time
 import ollama
+import threading
 
 # run this to record your microphone audio record it and then process it 
 
@@ -17,7 +18,7 @@ class AudioRecorder:
         self.model_path = model_path
         self.audio = pyaudio.PyAudio()
         self.frames = []
-        self.running = True
+        self.running = False
         self.last_processed_index = 0
         self.setup_signal_handling()
 
@@ -37,6 +38,7 @@ class AudioRecorder:
         self.stream.stop_stream()
         self.stream.close()
         self.audio.terminate()
+        self.running = False
         print("Finished Recording")
 
     def save_frames(self, filename_suffix):
@@ -89,6 +91,7 @@ class AudioRecorder:
         self.stream = self.audio.open(format=pyaudio.paInt16, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
         print("Recording...")
         try:
+            self.running = True
             while self.running:
                 data = self.stream.read(self.chunk)
                 self.frames.append(data)
@@ -99,5 +102,32 @@ class AudioRecorder:
 if __name__ == "__main__":
     print("enter the entry point")
     recorder = AudioRecorder()
-    recorder.start_recording()
-    print("Recording Finished")
+
+    # Thread for managing user input
+    def manage_input():
+        while True:
+            cmd = input("Type 'start' to start recording, 'stop' to stop recording, and 'exit' to exit: ").strip().lower()
+            if cmd == 'start':
+                if not recorder.running:
+                    print("Starting the recording...")
+                    recorder.running = True
+                    threading.Thread(target=recorder.start_recording).start()
+                else:
+                    print("Recording is already running.")
+            elif cmd == 'stop':
+                if recorder.running:
+                    print("Stopping the recording...")
+                    recorder.stop_recording()
+                else:
+                    print("Recording is not active.")
+            elif cmd == 'exit':
+                if recorder.running:
+                    recorder.stop_recording()
+                print("Exiting the program.")
+                break
+
+    # Start the thread for user input
+    input_thread = threading.Thread(target=manage_input)
+    input_thread.start()
+    input_thread.join()  # Wait for the input thread to finish before exiting the program
+    print("Program terminated.")
