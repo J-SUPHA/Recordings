@@ -18,28 +18,58 @@ class AudioRecorder:
         self.model_path = model_path
         self.audio = pyaudio.PyAudio()
         self.frames = []
-        self.running = False
+        self.running = threading.Event()
         self.last_processed_index = 0
-        self.setup_signal_handling()
-
-    def setup_signal_handling(self):
-        signal.signal(signal.SIGINT, self.signal_handler)
-        signal.signal(signal.SIGTERM, self.signal_handler)
+        self.lock = threading.Lock()
+        self.recording_thread = None  # Thread management
 
     def signal_handler(self, sig, frame):
         print("Stopping recording")
         self.stop_recording()
+
+    def cleanup(self):
+        if self.stream.is_active():
+            self.stream.stop_stream()
+            self.stream.close()
+        self.audio.terminate()
+        print("Recording stopped and resources cleaned up.")
 
     def stop_recording(self):
         print("Stopping the recording")
         if len(self.frames) > self.last_processed_index:
             filename = self.save_frames(int(time.time()))
             self.process_audio_file(filename)
-        self.stream.stop_stream()
-        self.stream.close()
-        self.audio.terminate()
-        self.running = False
+        try:
+            self.stream.stop_stream()
+            self.stream.close()
+            print("stream closed")
+        except Exception as e:
+            print(f"Error stopping the stream: {e}")
+        try:
+            self.audio.terminate()
+            print("audio terminated")
+        except Exception as e:
+            print(f"Error terminating PyAudio: {e}")
+        try:
+            self.running.clear()
+            print("running flag cleared")
+        except Exception as e:
+            print(f"Error clearing the running flag: {e}")
+        
+        if self.recording_thread:
+                self.recording_thread.join(timeout=5)  # Wait for the thread to finish with a timeout
+                if self.recording_thread.is_alive():
+                    print("Warning: Recording thread did not terminate as expected.")
+                else:
+                    self.recording_thread = None
         print("Finished Recording")
+
+    
+    def callback(self, in_data, frame_count, time_info, status):
+        if not self.running.is_set():
+            return (None, pyaudio.paComplete)
+        self.frames.append(in_data)
+        return (in_data, pyaudio.paContinue)
 
     def save_frames(self, filename_suffix):
         print("Saving the frames")
@@ -87,47 +117,52 @@ class AudioRecorder:
 
 
     def start_recording(self):
-        print("Starting Recording")
-        self.stream = self.audio.open(format=pyaudio.paInt16, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
-        print("Recording...")
-        try:
-            self.running = True
-            while self.running:
-                data = self.stream.read(self.chunk)
-                self.frames.append(data)
-        except Exception as e:
-            print(f"Error: {e}")
-            self.stop_recording()
+        with self.lock:
+            try:
+                self.stream = self.audio.open(format=pyaudio.paInt16, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk)
+                print("Recording started...")
+                self.running.set()
+            except Exception as e:
+                print(f"Error starting the recording: {e}")
+                return
+            try:
+                while self.running.is_set():
+                    print("print the status ", self.running.is_set())
+                    data = self.stream.read(self.chunk, exception_on_overflow=False)
+                    self.frames.append(data)
+                print("exited the loop properly")
+            finally:
+                print("this actually ran properly")
+                self.cleanup()
+
 
 if __name__ == "__main__":
-    print("enter the entry point")
+    print("Enter the entry point")
     recorder = AudioRecorder()
 
-    # Thread for managing user input
     def manage_input():
         while True:
             cmd = input("Type 'start' to start recording, 'stop' to stop recording, and 'exit' to exit: ").strip().lower()
             if cmd == 'start':
-                if not recorder.running:
-                    print("Starting the recording...")
-                    recorder.running = True
-                    threading.Thread(target=recorder.start_recording).start()
+                if not recorder.running.is_set():
+                    print("Attempting to start recording...")
+                    recorder.recording_thread = threading.Thread(target=recorder.start_recording)
+                    recorder.recording_thread.start()
                 else:
                     print("Recording is already running.")
             elif cmd == 'stop':
-                if recorder.running:
-                    print("Stopping the recording...")
+                if recorder.running.is_set():
                     recorder.stop_recording()
                 else:
                     print("Recording is not active.")
             elif cmd == 'exit':
-                if recorder.running:
+                if recorder.running.is_set():
                     recorder.stop_recording()
                 print("Exiting the program.")
                 break
 
-    # Start the thread for user input
     input_thread = threading.Thread(target=manage_input)
     input_thread.start()
     input_thread.join()  # Wait for the input thread to finish before exiting the program
     print("Program terminated.")
+
