@@ -1,12 +1,13 @@
 use portaudio as pa;
 use std::sync::{Arc, Mutex};
 use tokio::sync::Notify;
-use std::io::{self, Write, Error};
+use std::io::{self, Write};
 use std::process::Command;
 use std::fs;
 use std::fs::File;
-use std::io::ErrorKind;
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use serde_json::Error as SerdeJsonError;
 
 extern crate reqwest;
 use reqwest::Client;
@@ -16,6 +17,41 @@ const SAMPLE_RATE: f64 = 16000.0;
 const FRAMES_PER_BUFFER: u32 = 1024;
 const CHANNELS: i32 = 1;
 
+
+#[derive(Debug)]
+enum AppError {
+    IoError(std::io::Error),
+    PortAudioError(portaudio::Error),
+    SerdeJsonError(SerdeJsonError),
+    Other(String),  // For other types of errors
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter <'_>) -> fmt::Result {
+        match self {
+            AppError::IoError(e) => write!(f, "IO Error: {}", e),
+            AppError::PortAudioError(e) => write!(f, "PortAudio Error: {}", e),
+            AppError::Other(e) => write!(f, "Other Error: {}", e),
+            AppError::SerdeJsonError(e) => write!(f, "Serde JSON Error: {}", e),
+        }
+    }
+}
+impl From<SerdeJsonError> for AppError {
+    fn from(error: SerdeJsonError) -> Self {
+        AppError::SerdeJsonError(error)
+    }
+}
+
+impl From<std::io::Error> for AppError {
+    fn from(e: std::io::Error) -> Self {
+        AppError::IoError(e)
+    }
+}
+impl From<portaudio::Error> for AppError {
+    fn from(e: portaudio::Error) -> Self {
+        AppError::PortAudioError(e)
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ApiResponse {
@@ -36,7 +72,7 @@ struct Sst {
     model_path: String,
 }
 
-
+// the google doc API key that we need to use
 //314667396760-lkfko65c43uej9en2d7vbu55nom5qqg9.apps.googleusercontent.com
 
 
@@ -48,7 +84,7 @@ impl Sst {
         }
     }
 
-    fn extract_text_from_audio(&self) -> Result<String, Error> {
+    fn extract_text_from_audio(&self) -> Result<String, AppError> {
         let output_txt = format!("{}.txt", self.audio_file);
         let command = format!("/Users/j-supha/FFMPEG/whisper.cpp/main --model {} --output-txt {} {}", self.model_path, output_txt, self.audio_file);
 
@@ -70,7 +106,7 @@ impl Sst {
     }
 
     // Method to send extracted text to API and handle response
-    async fn send_text_to_api(&mut self, text: String) -> Result<(), Error> {
+    async fn send_text_to_api(&mut self, text: String) -> Result<(), AppError> {
         let client = Client::new();
         let request_body = serde_json::json!({
             "model": "llama3",
@@ -90,14 +126,14 @@ impl Sst {
             .json(&request_body)
             .send()
             .await
-            .map_err(|e| io::Error::new(ErrorKind::Other, e))?;
+            .map_err(|e| AppError::Other(e.to_string()))?;
     
         if res.status().is_success() {
             println!("Request successful: {}", res.status());
             
             let mut file = File::create("output.txt")?;
             
-            while let Some(chunk) = res.chunk().await.map_err(|e| io::Error::new(ErrorKind::Other, e))? {
+            while let Some(chunk) = res.chunk().await.map_err(|e| AppError::Other(e.to_string()))? {
                 let api_response: ApiResponse = serde_json::from_slice(&chunk)?;
                 println!("Message Content: {}", api_response.message.content);
                 file.write_all(api_response.message.content.as_bytes())?;
@@ -112,9 +148,10 @@ impl Sst {
     }
 
     // Combined method to process audio file and handle API interaction
-    async fn process_audio_file(&mut self) -> Result<(), Error> {
+    async fn process_audio_file(&mut self) -> Result<(), AppError> {
         let text = self.extract_text_from_audio()?;
-        self.send_text_to_api(text).await
+        self.send_text_to_api(text).await?;
+        Ok(())
     }
 
 }
@@ -126,7 +163,7 @@ struct AudioRecorder {
 }
 
 impl AudioRecorder {
-    fn new(pa_handle: &pa::PortAudio) -> Result<Self, pa::Error> {
+    fn new(pa_handle: &pa::PortAudio) -> Result<Self, AppError> {
         let settings = pa_handle.default_input_stream_settings(
             CHANNELS,
             SAMPLE_RATE,
@@ -154,7 +191,7 @@ impl AudioRecorder {
         self.stream.start()
     }
 
-    async fn stop(&mut self, recording: String) -> Result<(), pa::Error> {
+    async fn stop(&mut self, recording: String) -> Result<(), AppError> {
         self.stream.stop()?; // Stop the audio stream
 
         println!("Recording stopped {:?}", recording);
@@ -186,89 +223,129 @@ impl AudioRecorder {
         frames.clear();
         let mut tts_llm = Sst::new(filename.clone(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
 
-        match tts_llm.process_audio_file().await {
-            Ok(_) => println!("Audio file processed successfully."),
-            Err(e) => println!("Failed to process audio file: {}", e),
-        }
+        tts_llm.process_audio_file().await?;
+            
         Ok(())
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), pa::Error> {
-    let pa = pa::PortAudio::new()?;
 
-    let mut recorder = AudioRecorder::new(&pa)?;
-    // recorder.start()?;
+struct Control {
+    is_recording: bool,
+}
 
-    let is_recording = Arc::new(Mutex::new(false));
-    let mut recording_name = String::new();
-
-    let recorder_frames = recorder.frames.clone();
-    let recorder_notify = recorder.notify.clone();
-
-    // // Spawning an asynchronous task within the Tokio runtime
-    let _handle = tokio::spawn(async move {
-        loop {
-            // Wait for a notification asynchronously
-            recorder_notify.notified().await;
-            let _frames = recorder_frames.lock().unwrap();
-        }
-    });
-
-    // Command line interface to control recording
-    loop {
-        println!("Type 'start' to start recording, 'stop' to stop recording, and 'exit' to exit: ");
-        io::stdout().flush().unwrap();
-        let mut command = String::new();
-        io::stdin().read_line(&mut command).unwrap();
-        
-
-        let mut flag = is_recording.lock().unwrap(); 
-
-        match command.trim() {
-            "start" => {
-                if *flag {
-                    println!("Recording already in progress");
-                    continue;
-                }else {
-                    println!("Enter name of the recording: ");
-                    io::stdout().flush().unwrap();
-                    io::stdin().read_line(&mut recording_name).unwrap();
-                    *flag = true;
-                    recorder.start()?;
-                } 
-            }
-            "stop" => {
-                if *flag {
-                    recorder.stop(recording_name.clone()).await?;
-                    recording_name.clear();
-                    *flag = false;
-                } else {
-                    println!("No recording in progress");
-                }
-                
-            }
-            "exit" => {
-                if *flag {
-                    recorder.stop(recording_name.clone()).await?;
-                    recording_name.clear();
-                    *flag = false;
-                }
-                println!("Exiting...");
-                break;
-            }
-            _ => println!("Invalid command"),
+impl Control {
+    fn new() -> Self {
+        Self {
+            is_recording: false,
         }
     }
 
+    async fn control(&mut self) -> Result<(), AppError>{
+        loop {
+            println!("full for the full pipeline, text for text file, and exit to exit:");
+            io::stdout().flush().unwrap();
+            let mut command = String::new();
+            io::stdin().read_line(&mut command).unwrap();
+            
+            match command.trim() {
+                "full" => {
+                    self.full_pipeline().await;
+                }
+                "text" => {
+                    self.text_file().await;
+                }
+                "exit" => {
+                    println!("Exiting...");
+                    break;
+                }
+                _ => println!("Invalid command"),
+            }
+        }
+        Ok(())
 
-    // let mut sst = Sst::new("forge_meets.wav".to_string(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
-    // match sst.process_audio_file().await {
-    //     Ok(_) => println!("Audio file processed successfully."),
-    //     Err(e) => println!("Failed to process audio file: {}", e),
-    // }
+    }
 
+    async fn full_pipeline(&mut self) -> Result<(), AppError> {
+        let pa = pa::PortAudio::new()?;
+
+        let mut recorder = AudioRecorder::new(&pa)?;
+        // recorder.start()?;
+
+        let is_recording = Arc::new(Mutex::new(false));
+        let mut recording_name = String::new();
+
+        let recorder_frames = recorder.frames.clone();
+        let recorder_notify = recorder.notify.clone();
+
+        // // Spawning an asynchronous task within the Tokio runtime
+        let _handle = tokio::spawn(async move {
+            loop {
+                // Wait for a notification asynchronously
+                recorder_notify.notified().await;
+                let _frames = recorder_frames.lock().unwrap();
+            }
+        });
+
+        // Command line interface to control recording
+        loop {
+            println!("Type 'start' to start recording, 'stop' to stop recording, and 'exit' to exit: ");
+            io::stdout().flush().unwrap();
+            let mut command = String::new();
+            io::stdin().read_line(&mut command).unwrap();
+            
+            let mut flag = is_recording.lock().unwrap(); 
+
+            match command.trim() {
+                "start" => {
+                    if *flag {
+                        println!("Recording already in progress");
+                        continue;
+                    }else {
+                        println!("Enter name of the recording: ");
+                        io::stdout().flush().unwrap();
+                        io::stdin().read_line(&mut recording_name).unwrap();
+                        *flag = true;
+                        recorder.start()?;
+                    } 
+                }
+                "stop" => {
+                    if *flag {
+                        recorder.stop(recording_name.clone()).await?;
+                        recording_name.clear();
+                        *flag = false;
+                    } else {
+                        println!("No recording in progress");
+                    }
+                    
+                }
+                "exit" => {
+                    if *flag {
+                        recorder.stop(recording_name.clone()).await?;
+                        recording_name.clear();
+                        *flag = false;
+                    }
+                    println!("Exiting...");
+                    break;
+                }
+                _ => println!("Invalid command"),
+            }
+        }
+        Ok(())
+    }
+
+    async fn text_file(&mut self) -> Result<(), AppError> {
+        let mut sst = Sst::new("forge_meets.wav".to_string(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
+        sst.process_audio_file().await.map_err(|e| AppError::Other(e.to_string()))?;
+        Ok(())
+    }
+}
+
+
+#[tokio::main]
+async fn main() -> Result<(), AppError> {
+    let mut flow = Control::new();
+    flow.control().await?;
     Ok(())
 }
 
