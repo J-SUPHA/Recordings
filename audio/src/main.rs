@@ -8,6 +8,7 @@ use std::fs::File;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use serde_json::Error as SerdeJsonError;
+use std::path::Path;
 
 extern crate reqwest;
 use reqwest::Client;
@@ -131,15 +132,25 @@ impl Sst {
         if res.status().is_success() {
             println!("Request successful: {}", res.status());
             
-            let mut file = File::create("output.txt")?;
-            
+            let mut file = File::create("output.txt")?; // character count and do the Indexed RAG over the text rather than semantic RAG over the text
+            let mut cum_str = String::new();
             while let Some(chunk) = res.chunk().await.map_err(|e| AppError::Other(e.to_string()))? {
                 let api_response: ApiResponse = serde_json::from_slice(&chunk)?;
-                println!("Message Content: {}", api_response.message.content);
                 file.write_all(api_response.message.content.as_bytes())?;
+                cum_str.push_str(&api_response.message.content);
             }
-            
             file.sync_all()?;
+
+            let insert = format!("LLM Summary: \n\n\n{}\n\n\n Full Text \n\n\n {}\n\n\n", cum_str, text);
+            println!("{}", insert);
+            println!("This is the culmination of some hard work");
+            let _output = Command::new("python3")
+                .arg("google_docs.py")  // Path to the Python script
+                .arg("--write")
+                .arg(insert)               // Argument to pass to the Python script
+                .output()                   // Executes the command as a child process
+                .expect("Failed to execute command");
+            // 1HFD4EzZqm_i_AUn3NcbI1Bz8rZNRpENqQuB4oNGmbKY this is the document ID
         } else {
             eprintln!("Failed to send request: {}", res.status());
         }
@@ -243,7 +254,7 @@ impl Control {
 
     async fn control(&mut self) -> Result<(), AppError>{
         loop {
-            println!("full for the full pipeline, text for text file, and exit to exit:");
+            println!("full for the full pipeline, audio to process a wav file, and exit to exit:");
             io::stdout().flush().unwrap();
             let mut command = String::new();
             io::stdin().read_line(&mut command).unwrap();
@@ -252,7 +263,7 @@ impl Control {
                 "full" => {
                     self.full_pipeline().await;
                 }
-                "text" => {
+                "audio" => {
                     self.text_file().await;
                 }
                 "exit" => {
@@ -335,8 +346,29 @@ impl Control {
     }
 
     async fn text_file(&mut self) -> Result<(), AppError> {
-        let mut sst = Sst::new("forge_meets.wav".to_string(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
-        sst.process_audio_file().await.map_err(|e| AppError::Other(e.to_string()))?;
+        loop {
+            println!("Type the path to the wav file that you want to change. If the wav file is not found you will be asked to type it again. Type exit to exit:\n");
+            io::stdout().flush().unwrap();
+            let mut command = String::new();
+            io::stdin().read_line(&mut command).unwrap();
+            let command = command.trim();
+            if command == "exit" {
+                break;
+            }
+            if !command.ends_with(".wav") {
+                println!("Invalid file type. Please enter a .wav file");
+                continue;
+            }
+            let path = Path::new(command);
+            if !path.exists() {
+                println!("File not found. Please enter a valid path");
+                continue;
+            }
+            println!("File found. Processing audio file...");
+            let mut sst = Sst::new("forge_meets.wav".to_string(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
+            sst.process_audio_file().await.map_err(|e| AppError::Other(e.to_string()))?;
+            break;
+        }
         Ok(())
     }
 }
