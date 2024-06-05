@@ -1,7 +1,6 @@
 import pyaudio
 import wave
 import subprocess
-import signal
 import time
 import ollama
 import threading
@@ -27,35 +26,30 @@ class AudioRecorder:
         print("Stopping recording")
         self.stop_recording()
 
-    def cleanup(self):
-        if self.stream.is_active():
-            self.stream.stop_stream()
-            self.stream.close()
-        self.audio.terminate()
-        print("Recording stopped and resources cleaned up.")
-
     def stop_recording(self):
         print("Stopping the recording")
         if len(self.frames) > self.last_processed_index:
             filename = self.save_frames(int(time.time()))
             self.process_audio_file(filename)
         try:
-            self.stream.stop_stream()
-            self.stream.close()
-            print("stream closed")
-        except Exception as e:
-            print(f"Error stopping the stream: {e}")
-        try:
-            self.audio.terminate()
-            print("audio terminated")
-        except Exception as e:
-            print(f"Error terminating PyAudio: {e}")
-        try:
             self.running.clear()
             print("running flag cleared")
         except Exception as e:
             print(f"Error clearing the running flag: {e}")
-        
+
+        try:
+            self.stream.stop_stream()
+            self.stream.close()
+            print("STREAM CLOSED!!!!!")
+        except Exception as e:
+            print(f"Error stopping the stream: {e}")
+        try:
+            print("AUDIO TERMINATED!!!")
+            self.audio.terminate()
+            print("audio terminated")
+        except Exception as e:
+            print(f"Error terminating PyAudio: {e}")
+        print("HIT HERE")
         if self.recording_thread:
                 self.recording_thread.join(timeout=5)  # Wait for the thread to finish with a timeout
                 if self.recording_thread.is_alive():
@@ -99,7 +93,7 @@ class AudioRecorder:
         with open("final_output.txt", 'w') as file:
             file.write("")  # Clear existing content
 
-        for i,chunk in enumerate(chunks):
+        for chunk in chunks:
             response = ollama.chat(model="llama3", messages=[
                 {
                     "role": "system",
@@ -127,13 +121,20 @@ class AudioRecorder:
                 return
             try:
                 while self.running.is_set():
+                    if self.stream.is_active():
+                        data = self.stream.read(self.chunk, exception_on_overflow=False)
+                        self.frames.append(data)
+                    else:
+                        print("Stream inactive, stopping...")
+                        break
                     print("print the status ", self.running.is_set())
-                    data = self.stream.read(self.chunk, exception_on_overflow=False)
-                    self.frames.append(data)
-                print("exited the loop properly")
             finally:
-                print("this actually ran properly")
-                self.cleanup()
+                # print("this actually ran properly")
+                # if hasattr(self, 'stream') and self.stream.is_active():
+                #     self.stream.stop_stream()
+                #     self.stream.close()
+                # self.audio.terminate()
+                print("Recording stopped and resources cleaned up.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4 @@
+.vscode
+whisper.cpp
+pyaudio
+audio/target
