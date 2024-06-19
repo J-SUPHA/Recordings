@@ -11,7 +11,7 @@ pub struct Message {
 }
 
 lazy_static! {
-    static ref MAJOR: [Message; 5] = [
+    pub static ref MAJOR: [Message; 5] = [
         Message {
             role: "system".to_string(),
             content: "Your task is to group the following conversation between multiple parties by sub topic. You will be given a chunk of text and you have to group the text into a segments where each segment relates to a specific topic of conversation. I will give you a piece of text and you will insert <topic> tag at the beginning of the segment and the </topic> tag at the end of the segment. You need to return the entire segment with the tags in place. If you determine that the segment has not finished then do not add the final </topic> tag. Make sure that all the given text is encapsulated within a set of <topic> </topic> tags. You may encouter a case where the user has written a <topic> already. Just determine when that topic ends and then continue as normal".to_string(),
@@ -19,7 +19,7 @@ lazy_static! {
         Message {
             role: "user".to_string(),
             content: "-Hey, thank you for having me, I appreciate that.
-            -You're the only guy I've ever had in the studio where when I showed up, you were workingout.
+            -You're the only guy I've ever had in the studio where when I showed up, you were working out.
             -That's what I do, man, that's my life. That's my life.
             -It's pretty crazy though. I mean how much time did you have when you got here?
             -I got here about an hour early.

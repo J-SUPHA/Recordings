@@ -122,7 +122,7 @@ impl Control {
 
     async fn text_file(&mut self) -> Result<(), AppError> {
         loop {
-            println!("Type the path to the wav file that you want to change. If the wav file is not found you will be asked to type it again. Type exit to exit:\n");
+            println!("Type the path to the wav file that you want to change. If the wav file is not found you will be asked to type it again. Type exit to exit:");
             io::stdout().flush().unwrap();
             let mut command = String::new();
             io::stdin().read_line(&mut command).unwrap();

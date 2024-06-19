@@ -9,8 +9,6 @@ pub fn split_into_chunks(input: &str, chunk_size: usize) -> Vec<String> {
         .chunks(chunk_size) // Split vector into chunks
         .map(|chunk| chunk.iter().collect()) // Convert each chunk back into a String
         .collect(); // Collect all chunks into a Vector
-
-    println!("{:?}", chunks);
     return chunks;
 }
 
