@@ -6,14 +6,8 @@ use crate::error::AppError;
 mod helper;
 use helper::{split_into_chunks, parse_topics};
 mod prompts;
+use prompts::Message;
 
-
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Message {
-    role: String,
-    content: String,
-}
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -101,8 +95,12 @@ impl Sst {
         }
         println!("finished tagging the text into the topic chunks");
         let mut llm = String::new();
+        let mut stored_vec = prompts::MINOR.to_vec();
         for items in total{
-            println!("Passing chunk to be summzarized by LLM");
+            stored_vec.push(Message {
+                role: "user".to_string(),
+                content: items,
+            });
             let request_body = serde_json::json!({
                 "model": "llama3",
                 "messages": []

@@ -4,10 +4,10 @@ use lazy_static::lazy_static;
 
 
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Message {
-    role: String,
-    content: String
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Message {
+    pub role: String,
+    pub content: String
 }
 
 lazy_static! {
@@ -680,7 +680,7 @@ lazy_static! {
 
 
 lazy_static! {
-    static ref MINOR: [Message; 1] = [
+    pub static ref MINOR: [Message; 1] = [
         Message {
             role: "system".to_string(),
             content: "You shall take this conversation and sumarize in a clear and concise manner".to_string()
