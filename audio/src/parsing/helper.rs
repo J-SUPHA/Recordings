@@ -73,6 +73,7 @@ pub async fn send_groq_api_request(
     let mut retry_attempt = 0;
 
     while retry_attempt < retry_count {
+        println!("This is the api key {:?}", groq_key.clone());
         let response_result = client
             .post("https://api.groq.com/openai/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", groq_key.clone()))

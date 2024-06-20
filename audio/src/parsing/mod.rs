@@ -76,7 +76,7 @@ impl Sst {
     }
 
     // Method to send extracted text to API and handle response
-    async fn rag_tag(&mut self, text: String) -> Result<(), AppError> {
+    async fn rag_tag(&mut self, text: String) -> Result<(), AppError> { // must correct the input structure
         // reqwest client to send requests
 
         println!("My RAG TAG");
