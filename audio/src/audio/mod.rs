@@ -74,7 +74,7 @@ impl AudioRecorder {
 
         // Clear the audio frames
         frames.clear();
-        let mut tts_llm = Sst::new(filename.clone(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
+        let mut tts_llm = Sst::new(filename.clone(), "/Users/j-supha/Desktop/Personal_AI/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
 
         tts_llm.process_audio_file().await?;
             

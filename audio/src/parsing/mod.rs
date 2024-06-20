@@ -1,13 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::process::Command;
-use reqwest::Client;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::env;
 use crate::error::AppError;
 mod helper;
-use helper::{split_into_chunks, parse_topics};
+use helper::{split_into_chunks, parse_topics, send_groq_api_request};
 mod prompts;
 use prompts::Message;
 
@@ -39,25 +38,39 @@ impl Sst {
     // Method to extract text from audio file using the whisper.cpp binary
     fn extract_text_from_audio(&self) -> Result<String, AppError> {
 
+        println!("Extracting text from audio file...");
+
         let output_txt = format!("{}.txt", self.audio_file);
 
-        let command = format!("/Users/j-supha/FFMPEG/whisper.cpp/main --model {} --output-txt {} {}", self.model_path, output_txt, self.audio_file);
+        println!("Extracting text from audio file...");
+
+        let command = format!("/Users/j-supha/Desktop/Personal_AI/FFMPEG/whisper.cpp/main --model {} --output-txt {} {}", self.model_path, output_txt, self.audio_file);
+
+        println!("This is my model path: {}", self.model_path);
+        println!("This is my output path: {}", output_txt);
+        println!("This is my audio file: {}", self.audio_file);
 
         let output = Command::new("sh")
             .arg("-c")
             .arg(&command)
             .output()?;
 
+        println!("Passed 1");
+
         if !output.stdout.is_empty() {
             println!("{}", String::from_utf8_lossy(&output.stdout));
         }
+        println!("Passed 2");
 
         if !output.stderr.is_empty() {
             eprintln!("{}", String::from_utf8_lossy(&output.stderr));
         }
+        println!("Passed 3");
 
         // Read the output from the text file
         let text = fs::read_to_string(output_txt)?;
+
+        println!("Passed 4");
 
         Ok(text)
     }
@@ -65,69 +78,59 @@ impl Sst {
     // Method to send extracted text to API and handle response
     async fn rag_tag(&mut self, text: String) -> Result<(), AppError> {
         // reqwest client to send requests
-        let client = Client::new();
+
+        println!("My RAG TAG");
         // Split the text into chunks of 2000 characters -
         let my_vec = split_into_chunks(&text, 2000);
+        println!("writing {:?}", my_vec.len());
+        fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/test.txt", &my_vec.join("\n\n")).expect("unable to write file");
+        println!("Writing to a specific file ");
         let mut f = String::new(); // Will marke the unfinished tags that occur within the text. So will take into account any open <topic> tags that are still in place 
         let mut total: Vec<String> = Vec::new(); // Will store the actual chunked text
         let mut init_vec = prompts::MAJOR.to_vec();
         for vectors in my_vec {
+            println!("Sending vectors to the correct spots");
             let insert = format!("{} {}", f,vectors);
             init_vec.push(Message {
                 role: "user".to_string(),
-                content: insert,
+                content: insert.clone(),
             });
-
+            fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/insert1.txt", &insert).expect("unable to write file");
             let request_body = serde_json::json!({
                 "model": "llama3",
                 "messages": init_vec
             });
             init_vec.pop();
+            println!("Still going through the loop");
 
-            // let mut res = client.post("http://localhost:11434/api/chat")
-            //     .json(&request_body)
-            //     .send()
-            //     .await
-            //     .map_err(|e| AppError::Other(e.to_string()))?;
+            let cum_str = send_groq_api_request(self.groq_key.clone(), request_body);
 
-            let mut res = client.post("https://api.groq.com/openai/v1/chat/completions")
-                .header("Authorization: Bearer ", self.groq_key.clone())
-                .json(&request_body)
-                .send()
-                .await
-                .map_err(|e| AppError::Other(e.to_string()))?;
+            match cum_str.await {
+                Ok(response_text) => {
+                    let (finished, unfinished) = parse_topics(&response_text);
+                    f = unfinished;
+                    let mut unfinished_write = OpenOptions::new() //this is all for debugging purposes
+                        .write(true)
+                        .append(true)
+                        .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/unfinished.txt")
+                        .expect("unable to open file");
+                    unfinished_write.write_all(f.as_bytes()).expect("unable to write file");
 
-            if res.status().is_success() {
-                let mut cum_str = String::new();
-                while let Some(chunk) = res.chunk().await.map_err(|e| AppError::Other(e.to_string()))? {
-                    let api_response: ApiResponse = serde_json::from_slice(&chunk)?;
-                    cum_str.push_str(&api_response.message.content);
+                    let middle = format!("{:?}\n\n",finished);
+                    let mut finished_write = OpenOptions::new()
+                        .write(true)
+                        .append(true)
+                        .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/finished.txt")
+                        .expect("unable to open file");
+                    finished_write.write_all(middle.as_bytes()).expect("unable to write file");
+
+                    for i in &finished {
+                        total.push(i.clone());
+                    }
                 }
-                let (finished, unfinished) = parse_topics(&cum_str);
-
-
-                f = unfinished;
-                let mut unfinished_write = OpenOptions::new() //this is all for debugging purposes
-                    .write(true)
-                    .append(true)
-                    .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/unfinished.txt")
-                    .expect("unable to open file");
-                unfinished_write.write_all(f.as_bytes()).expect("unable to write file");
-
-                let middle = format!("{:?}\n\n",finished);
-                let mut finished_write = OpenOptions::new()
-                    .write(true)
-                    .append(true)
-                    .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/finished.txt")
-                    .expect("unable to open file");
-                finished_write.write_all(middle.as_bytes()).expect("unable to write file");
-
-
-                for i in &finished {
-                    total.push(i.clone());
+                Err(error_message) => {
+                    eprintln!("Error: {}", error_message);
                 }
-            }else{
-                eprintln!("Failed to send request here might be better to switch to GROQ: {}", res.status());
             }
         }
         println!("finished tagging the text into the topic chunks");
@@ -153,35 +156,28 @@ impl Sst {
             });
             stored_vec.pop();
 
-            // let mut res = client.post("http://localhost:11434/api/chat")
-            //     .json(&request_body)
-            //     .send()
-            //     .await
-            //     .map_err(|e| AppError::Other(e.to_string()))?;
 
-            let mut res = client.post("https://api.groq.com/openai/v1/chat/completions")
-                .header("Authorization : Bearer ",self.groq_key.clone())
-                .json(&request_body)
-                .send()
-                .await
-                .map_err(|e| AppError::Other(e.to_string()))?;
+            let final_output = send_groq_api_request(self.groq_key.clone(), request_body);
 
-
-            if res.status().is_success() {
-
-                let mut cum_str = String::new();
-
-                while let Some(chunk) = res.chunk().await.map_err(|e| AppError::Other(e.to_string()))? {
-                    let api_response: ApiResponse = serde_json::from_slice(&chunk)?;
-                    cum_str.push_str(&api_response.message.content);
+            match final_output.await {
+                Ok(response_text) => {
+                    // Write the response_text to the file
+                    fs::write(
+                        "/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/google_docs.txt",
+                        &response_text,
+                    )
+                    .expect("unable to write file");
+                    
+                    // Append the response_text to llm
+                    llm = format!("{}\n\n{}", llm, response_text);
                 }
-                // Here is where I need to write ./google_docs.txt with the cum_str to.
-                fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/google_docs.txt", &cum_str).expect("unable to write file");
-                llm = format!("{:?}\n\n{:?}",llm, cum_str);
-
-            }else{
-                eprintln!("Failed to send request: {}", res.status());
+                Err(error_message) => {
+                    eprintln!("Error: {}", error_message);
+                    // Handle the error case
+                }
             }
+
+            
         }
       
             let _output = Command::new("python3")

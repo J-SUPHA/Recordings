@@ -58,3 +58,56 @@ pub fn parse_topics(response: &str) -> (Vec<String>, String) {
 
     (finished, unfinished)
 }
+
+use reqwest::Client;
+use serde_json::Value;
+use std::time::Duration;
+
+pub async fn send_groq_api_request(
+    groq_key: String,
+    request_body: Value,
+) -> Result<String, String> {
+    let client = Client::new();
+    let timeout = Duration::from_secs(30);
+    let retry_count = 3;
+    let mut retry_attempt = 0;
+
+    while retry_attempt < retry_count {
+        let response_result = client
+            .post("https://api.groq.com/openai/v1/chat/completions")
+            .header("Authorization", format!("Bearer {}", groq_key.clone()))
+            .json(&request_body)
+            .timeout(timeout)
+            .send()
+            .await;
+
+        match response_result {
+            Ok(response) => {
+                if response.status().is_success() {
+                    let response_text = response.text().await.map_err(|e| e.to_string())?;
+                    return Ok(response_text);
+                } else {
+                    let error_message = format!(
+                        "Unexpected response status: {}",
+                        response.status()
+                    );
+                    return Err(error_message);
+                }
+            }
+            Err(error) => {
+                eprintln!(
+                    "Error occurred while sending request to Groq API: {:?}",
+                    error
+                );
+                retry_attempt += 1;
+                if retry_attempt == retry_count {
+                    return Err(format!("Failed to send request after {} retries", retry_count));
+                } else {
+                    tokio::time::sleep(Duration::from_secs(5)).await;
+                }
+            }
+        }
+    }
+
+    Err("Unexpected execution flow".to_string())
+}

@@ -140,7 +140,7 @@ impl Control {
                 continue;
             }
             println!("File found. Processing audio file {:?}", command);
-            let mut sst = Sst::new(command.to_string(), "/Users/j-supha/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
+            let mut sst = Sst::new(command.to_string(), "/Users/j-supha/Desktop/Personal_AI/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
             sst.process_audio_file().await.map_err(|e| AppError::Other(e.to_string()))?;
             break;
         }
