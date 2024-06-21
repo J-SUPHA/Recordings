@@ -16,7 +16,7 @@ lazy_static! {
     pub static ref MAJOR: [Message; 3] = [
         Message {
             role: "system".to_string(),
-            content: "Your task is to group the following conversation between multiple parties by topic. You will be given a chunk of text and you have to group the text into a segments where each segment relates to a specific topic of conversation. I will give you a piece of text and you will insert <topic> tag at the beginning of the segment and the </topic> tag at the end of the segment. You need to return the given with the tags in place. If you determine that the segment has not finished then do not add the final </topic> tag. Make sure that all the given text is encapsulated within a set of <topic> </topic> tags. You may encouter a case where the user has written a <topic> already. Just determine when that topic ends and then continue as normal. YOU MUST TAG THE TET APPROPRIATELY".to_string(),
+            content: "Your task is to group the following conversation between multiple parties by topic. You will be given a chunk of text and you have to group the text into a segments where each segment relates to a specific topic of conversation. You will insert a <topic> tag at the beginning of the each topic in the text and a </topic> tag at the end of each topic in the text. You need to return the given text with the tags in place. If you determine that the segment has not finished then do not add the final </topic> tag. You may encouter a case where the user has written a <topic> already. Just determine when that topic ends and insert a </topic> where you see fit.".to_string(),
         },
         Message {
             role: "user".to_string(),
@@ -686,6 +686,31 @@ lazy_static! {
         Message {
             role: "system".to_string(),
             content: "You shall take this conversation and sumarize in a clear and concise manner".to_string()
+        }
+    ];
+}
+
+lazy_static! {
+    pub static ref ACTION: [Message; 5] = [
+        Message {
+            role: "system".to_string(),
+            content: "You are viewing snippets of a meeting. Your job is to extract any action items. An action item is something that needs to be done after the meeting. The following snippet may not have have any action items. But if the snippet does have action items please list them. If there are no action items from the input simply output the word none please".to_string()
+        }, 
+        Message {
+            role: "user".to_string(),
+            content: "So far within the Grugsite I have done a basic mockup in handlebars of the frontend although I still need to cleanup it up and align it properly. I have built the integration between discord and the website that allows nous memeber to post whatever they want to the site. I have also built a categories system that I probably need to clean up a well. Now I need to deploy the site to google cloud, obtain the domain name and test it with John Galt".to_string()
+        },
+        Message {
+            role: "assitant".to_string(),
+            content: "Summary of Grugsite topic\n The builder of the Grugsite needs to cleanup the frontend \n the builder of the website needs to clean up the categories system \n the builder needs to deploy the site to google cloud obtain the domain name and test the site with John Galt".to_string()
+        },
+        Message {
+            role: "user".to_string(),
+            content: "Over the weekend I wen tot gym and took the dog out for a walk. We played fetch - that so cute - yeah hes just a puppy. he's still learning how to fetch the dog will chase after the ball and just sit with the ball and not do anything with it. He is so silly".to_string()
+        },
+        Message {
+            role: "assistant".to_string(),
+            content: "None".to_string()
         }
     ];
 }

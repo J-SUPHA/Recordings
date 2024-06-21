@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::fs;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::env;
 use crate::error::AppError;
 mod helper;
@@ -75,6 +73,11 @@ impl Sst {
         Ok(text)
     }
 
+
+    // async fn semantic_rag(&mut self text: String) -> Result<(), AppError> {
+
+    // }
+
     // Method to send extracted text to API and handle response
     async fn rag_tag(&mut self, text: String) -> Result<(), AppError> { // must correct the input structure
         // reqwest client to send requests
@@ -84,27 +87,23 @@ impl Sst {
 
         println!("writing {:?}", my_vec.len());
 
-        fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/test.txt", &my_vec.join("\n\n")).expect("unable to write file");
-
-
         let mut f = String::new(); // Will marke the unfinished tags that occur within the text. So will take into account any open <topic> tags that are still in place 
-        let mut total: Vec<String> = Vec::new(); // Will store the actual chunked text
+        let mut total: Vec<String> = Vec::new(); // Will store the actual chunked text - probably the most important vector in the whole pipeline 
         let mut init_vec = prompts::MAJOR.to_vec();
 
         for vectors in my_vec {
-            println!("Sending vectors to the correct spots");
+
             let insert = format!("{} {}", f,vectors);
             init_vec.push(Message {
                 role: "user".to_string(),
                 content: insert.clone(),
             });
-            fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/insert1.txt", &insert).expect("unable to write file");
+
             let request_body = serde_json::json!({
                 "model": "Llama3-70b-8192",
                 "messages": init_vec
             });
             init_vec.pop();
-            println!("Still going through the loop");
 
             let cum_str = send_groq_api_request(self.groq_key.clone(), request_body);
 
@@ -112,20 +111,6 @@ impl Sst {
                 Ok(response_text) => {
                     let (finished, unfinished) = parse_topics(&response_text);
                     f = unfinished;
-                    let mut unfinished_write = OpenOptions::new() //this is all for debugging purposes
-                        .write(true)
-                        .append(true)
-                        .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/unfinished.txt")
-                        .expect("unable to open file");
-                    unfinished_write.write_all(f.as_bytes()).expect("unable to write file");
-
-                    let middle = format!("{:?}\n\n",finished);
-                    let mut finished_write = OpenOptions::new()
-                        .write(true)
-                        .append(true)
-                        .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/finished.txt")
-                        .expect("unable to open file");
-                    finished_write.write_all(middle.as_bytes()).expect("unable to write file");
 
                     for i in &finished {
                         total.push(i.clone());
@@ -136,22 +121,14 @@ impl Sst {
                 }
             }
         }
-        println!("finished tagging the text into the topic chunks");
+
         let mut llm = String::new();
         let mut stored_vec = prompts::MINOR.to_vec();
-        for items in total{
+        for items in total.clone(){
             stored_vec.push(Message {
                 role: "user".to_string(),
                 content: items,
             });
-            let write_string = format!("{:?}\n\n\n", stored_vec);
-
-            let mut file = OpenOptions::new()
-                .write(true)
-                .append(true)
-                .open("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/whatIsHappenning.txt")
-                .expect("unable to open file");
-            file.write_all(write_string.as_bytes()).expect("unable to write file");
 
             let request_body = serde_json::json!({
                 "model": "Llama3-70b-8192",
@@ -165,11 +142,6 @@ impl Sst {
             match final_output.await {
                 Ok(response_text) => {
                     // Write the response_text to the file
-                    fs::write(
-                        "/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/google_docs.txt",
-                        &response_text,
-                    )
-                    .expect("unable to write file");
                     
                     // Append the response_text to llm
                     llm = format!("{}\n\n{}", llm, response_text);
@@ -179,17 +151,65 @@ impl Sst {
                     // Handle the error case
                 }
             }
-
-            
         }
+        // so now llm contains a string embedding of the each of the conversations. they have been summarized into segments but nothing has been done
+        // the only thing that has been done is that they have been separated into topics and summarized
+        // in the current scope of work at least for this cycle we are going to implement the following steps
+        // 1 . naive - write the summarized output straight into a google doc - this has already been done with _output
+        // 2. add another parsing step to the raw chunk ask the llm to extract any and all action items and then write those down into a google doc
+        // 3. add a databse integration with rag and allow a user to chat directly with the meeting notes
+
+        // within total
+
+        let mut prompt = prompts::ACTION.to_vec();
+        let mut google_output_2 = String::new();
+        for items in total{
+            prompt.push(Message {
+                role: "user".to_string(),
+                content: items,
+            });
+
+            let request_body = serde_json::json!({
+                "model": "Llama3-70b-8192",
+                "messages": prompt.clone()
+            });
+            prompt.pop();
+            let response = send_groq_api_request(self.groq_key.clone(), request_body);
+
+            match response.await {
+                Ok(response_text) => {
+                    // Write the response_text to the file
+                    
+                    // Append the response_text to llm
+                    google_output_2 = format!("{}\n\n{}", google_output_2, response_text);
+                }
+                Err(error_message) => {
+                    eprintln!("Error: {}", error_message);
+                    // Handle the error case
+                }
+            }
+        }
+
+        let _outputnega = Command::new("python3")
+            .arg("google_docs.py")
+            .arg("--write")
+            .arg(google_output_2)
+            .output()
+            .expect("Failed to execute command 1");
+
+        println!("Rexecuting the code in python");
+
       
-            let _output = Command::new("python3")
-                .arg("google_docs.py")  // Path to the Python script
-                .arg("--write")
-                .arg(llm)               // Argument to pass to the Python script
-                .output()                   // Executes the command as a child process
-                .expect("Failed to execute command");
+        let _output = Command::new("python3")
+            .arg("google_docs.py")  // Path to the Python script
+            .arg("--write")
+            .arg(llm)               // Argument to pass to the Python script
+            .output()                   // Executes the command as a child process
+            .expect("Failed to execute command 2");
             // 1HFD4EzZqm_i_AUn3NcbI1Bz8rZNRpENqQuB4oNGmbKY this is the document ID
+
+
+        
 
         Ok(())
     }
