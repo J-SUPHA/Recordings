@@ -85,6 +85,7 @@ pub async fn send_groq_api_request(
         match response_result {
             Ok(response) => {
                 if response.status().is_success() {
+                    println!("Response status: {}", response.status());
                     let response_text = response.text().await.map_err(|e| e.to_string())?;
                     return Ok(response_text);
                 } else {

@@ -19,6 +19,10 @@ struct ApiResponse {
     message: Message,
     done: bool,
 }
+struct Body {
+    model: String,
+    messages: Vec<Message>,
+}
 
 pub struct Sst {
     audio_file: String,
@@ -79,15 +83,18 @@ impl Sst {
     async fn rag_tag(&mut self, text: String) -> Result<(), AppError> { // must correct the input structure
         // reqwest client to send requests
 
-        println!("My RAG TAG");
         // Split the text into chunks of 2000 characters -
         let my_vec = split_into_chunks(&text, 2000);
+
         println!("writing {:?}", my_vec.len());
+
         fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/test.txt", &my_vec.join("\n\n")).expect("unable to write file");
-        println!("Writing to a specific file ");
+
+
         let mut f = String::new(); // Will marke the unfinished tags that occur within the text. So will take into account any open <topic> tags that are still in place 
         let mut total: Vec<String> = Vec::new(); // Will store the actual chunked text
         let mut init_vec = prompts::MAJOR.to_vec();
+
         for vectors in my_vec {
             println!("Sending vectors to the correct spots");
             let insert = format!("{} {}", f,vectors);
@@ -97,7 +104,7 @@ impl Sst {
             });
             fs::write("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/insert1.txt", &insert).expect("unable to write file");
             let request_body = serde_json::json!({
-                "model": "llama3",
+                "model": "Llama3-70b-8192",
                 "messages": init_vec
             });
             init_vec.pop();
@@ -151,7 +158,7 @@ impl Sst {
             file.write_all(write_string.as_bytes()).expect("unable to write file");
 
             let request_body = serde_json::json!({
-                "model": "llama3",
+                "model": "Llama3-70b-8192",
                 "messages": stored_vec.clone()
             });
             stored_vec.pop();

@@ -10,6 +10,8 @@ pub struct Message {
     pub content: String
 }
 
+
+
 lazy_static! {
     pub static ref MAJOR: [Message; 5] = [
         Message {
