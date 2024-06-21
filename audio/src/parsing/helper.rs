@@ -59,7 +59,7 @@ pub fn parse_topics(response: &str) -> (Vec<String>, String) {
     (finished, unfinished)
 }
 
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
 use serde_json::Value;
 use std::time::Duration;
 
@@ -84,32 +84,46 @@ pub async fn send_groq_api_request(
 
         match response_result {
             Ok(response) => {
-                if response.status().is_success() {
-                    println!("Response status: {}", response.status());
-                    let response_text = response.text().await.map_err(|e| e.to_string())?;
-                    return Ok(response_text);
-                } else {
-                    let error_message = format!(
-                        "Unexpected response status: {}",
-                        response.status()
-                    );
-                    return Err(error_message);
+                match response.status() {
+                    StatusCode::OK => {
+
+                        let intermediate = response.text().await.map_err(|e| e.to_string())?;
+                        let json: Value = serde_json::from_str(&intermediate).map_err(|e| e.to_string())?;
+                        let content = json["choices"][0]["message"]["content"]
+                            .as_str()
+                            .ok_or_else(|| "Falied to extract content from JSON".to_string())?
+                            .to_string();
+                        return Ok(content);
+                    }
+                    StatusCode::TOO_MANY_REQUESTS => {
+                        println!("Too many requests. Retrying...");
+                        retry_attempt += 1;
+                        if retry_attempt < retry_count {
+                            tokio::time::sleep(Duration::from_secs(60)).await;
+                            continue;
+                        }else {
+                            return Err("Failed to send request after 3 retries".to_string());
+                        }
+                    }
+                    _=> {
+                        let error_message = format!(
+                            "Unexpected response status: {}",
+                            response.status()
+                        );
+                        return Err(error_message);
+                    }
                 }
             }
             Err(error) => {
-                eprintln!(
-                    "Error occurred while sending request to Groq API: {:?}",
-                    error
-                );
-                retry_attempt += 1;
-                if retry_attempt == retry_count {
-                    return Err(format!("Failed to send request after {} retries", retry_count));
-                } else {
-                    tokio::time::sleep(Duration::from_secs(5)).await;
+                eprintln!("Error occured while sending request to Groq API: {:?}", error);
+                retry_attempt+=1;
+                if retry_attempt < retry_count {
+                    return Err(format!("Failed to send request after {} retries", retry_attempt));
+                }else {
+                    tokio::time::sleep(Duration::from_secs(60)).await;
                 }
             }
         }
     }
-
-    Err("Unexpected execution flow".to_string())
+    return Err("Failed to send request after 3 retries".to_string());
 }

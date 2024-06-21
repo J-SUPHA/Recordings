@@ -19,10 +19,6 @@ struct ApiResponse {
     message: Message,
     done: bool,
 }
-struct Body {
-    model: String,
-    messages: Vec<Message>,
-}
 
 pub struct Sst {
     audio_file: String,

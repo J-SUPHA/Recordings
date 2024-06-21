@@ -13,10 +13,10 @@ pub struct Message {
 
 
 lazy_static! {
-    pub static ref MAJOR: [Message; 5] = [
+    pub static ref MAJOR: [Message; 3] = [
         Message {
             role: "system".to_string(),
-            content: "Your task is to group the following conversation between multiple parties by sub topic. You will be given a chunk of text and you have to group the text into a segments where each segment relates to a specific topic of conversation. I will give you a piece of text and you will insert <topic> tag at the beginning of the segment and the </topic> tag at the end of the segment. You need to return the entire segment with the tags in place. If you determine that the segment has not finished then do not add the final </topic> tag. Make sure that all the given text is encapsulated within a set of <topic> </topic> tags. You may encouter a case where the user has written a <topic> already. Just determine when that topic ends and then continue as normal".to_string(),
+            content: "Your task is to group the following conversation between multiple parties by topic. You will be given a chunk of text and you have to group the text into a segments where each segment relates to a specific topic of conversation. I will give you a piece of text and you will insert <topic> tag at the beginning of the segment and the </topic> tag at the end of the segment. You need to return the given with the tags in place. If you determine that the segment has not finished then do not add the final </topic> tag. Make sure that all the given text is encapsulated within a set of <topic> </topic> tags. You may encouter a case where the user has written a <topic> already. Just determine when that topic ends and then continue as normal. YOU MUST TAG THE TET APPROPRIATELY".to_string(),
         },
         Message {
             role: "user".to_string(),
@@ -96,587 +96,587 @@ lazy_static! {
             -So after all that shit was done with, going to school rarely happened. So when I went toschool, I was all kind of you know, my my learning disability. I had social anxiety I was justa jacked-up kid from living in this tortured home from the outside looking in we live in theall-white neighborhood and then we would travel to the ghetto of Buffalo, New York wherethe skating rink was at. So we you know we worked around mostly blacks and I livedaround mostly whites but no 1 knew what was going on that house that on 201 ParadiseRoad.
             -You know it's crazy but my mom got courage to finally leave him when I was about 8 yearsold we moved to a small town in Brazil Indiana and That's when the real war started for meand Brazil Indiana is a small town great people a lot of great people and I say that becausea lot of people get offended and I'm gonna get to the point why they get offended. Therewas about maybe 10 black families at about 10, 000 people in the town and in 1995 theKKK marched in the 4th of July parade. So this was a, not everybody was racist. There's alot of good people some the best people I knew was there But there's also a lot of racismthere so me being 1 of the few black kids in that you know in the area You know it kind ofhaunts you I had stuff on my notebook.
             -You know nigga We're gonna kill you on my Spanish notebook. They had that on my carnigga we're gonna kill you this is early 90s and So even though I showed it didn't hurt meit was jacking me up So all the insecurities I have when I was a kid with my father I'vemoved into this area here And it just got worse and worse and worse. And this shithaunted me. And that voice that I talked about, it kept talking louder and louder andlouder, but I was doing nothing about it.
-            -And I decided to make moves. And I cheated all through school. And it's kind of humblingto talk about my story sometimes and it's also embarrassing but it's real. It's who the fuckI am.
+            -And I decided to make moves. And I cheated all through school. And it's kind of humblingto talk about my story sometimes and it's also embarrassing but it's real. It's who the fuck I am.
             </topic>
             ".to_string()
-        },
-        Message {
-            role: "user".to_string(),
-            content: "Okay, everybody's here, that's awesome.
-            We're gonna upload and share a doc
-            into the news research drive and share with all you guys.
-            It is a Forge project management doc
-            that's basically an analog to the network doc
-            that was made put together
-            from some of the compiled notes that we've all shared.
-            Just wanna go over it, talk about comms,
-            talk about responsibilities, talk about the project scope,
-            et cetera, and wanna run through all of it,
-            you guys, before the stand up.
-            Ari, I'm happy to say you have no responsibilities
-            inside of the current doc as it exists today.
-            You have plenty of work cut out for you
-            on the world segment already.
-            And before I just jump into Forge,
-            I'll just say on the world soon, et cetera.
-            Thanks to the very hard work of VORPs
-            and we're still cleaning up now by the new props,
-            able to get really, really good results using Stonnet
-            and even haiku over opus,
-            like better than opus as results.
-            So we're getting ready to bring that to you, Ari,
-            next week to actually integrate into
-            world, sim, and world clients.
-            - Sick, I'm very excited.
-            - Yeah, we shall save the monies.
-            And we believe we will finally be a leg up over a website
-            in terms of actual site functionality design,
-            but we'll let everyone be the judge of that
-            when we test during the next needs on Tuesday.
-            And that being said, I'm just uploading the document
-            to drive, I'm gonna share with everyone
-            and I can stream it too.
-            And tag, Kannen, thank you guys for coming
-            very much, I'm happy you guys are here.
-            I'm mostly being looking for feedback
-            and thoughts from Shannon and Jay today
-            right now on this before opening it up to everybody
-            during the standup, if that's all right.
-            Just share.
-            - I think Kannen's just here 'cause he won't stay updated
-            so that he can interact with the community better.
-            - Perfect, that makes total sense.
-            We do, I do wanna figure out about community management
-            plans and community leading efforts, Kannen.
-            So that's something we will talk about.
-            I just wanna get the deep brass tags down first.
-            I'm gonna start the show now.
-            - Is that shaded in the channel?
-            I can't see anything.
-            - No, I'm sending it to everybody's news emails right now.
-            - That's everyone.
-            Okay, I think that's everyone that needs to see it right now.
-            , I'll start streaming now also.
-            Yay.
-            (mumbling)
-            (mumbling)
-            (mumbling)
-            Great.
-            (mumbling)
-            (mumbling)
-            (mumbling)
-            Okay, can everybody see okay?
-            (mumbling)
-            - Yep.
-            Oh yeah, there we go.
-            - Hey Greg.
-            - I'm not on the best internet,
-            so it might not be super clear
-            which is why I wanna share it to everybody.
-            I'm on the Kannen.
-            You know, what's your email?
-            - Kannen.newsresearch.com.
-            - Okay, you guys should all have access now
-            in case things are not working out.
-            So I based this off of the conciliency PM doc.
-            We have a couple pieces of this that are totally complete
-            and then pieces of this that I wanna add to.
-            And of course, like we should be iteratively working on all of it.
-            But we've got an overview of what's in scope
-            and what's out of scope very importantly as well.
-            So we can lock in exactly what we need to be focused on.
-            Then just a general matrix for like,
-            who's responsible for what, who's accountable for doing it,
-            who's gonna be helping with it.
-            So people know who to reach out to
-            when they have certain questions
-            about different pieces of the project.
-            I don't want five people messaging one person
-            about each thing if that person's not the person
-            who is the point man for that project.
-            So we put that together too.
-            Basic contact sheet, I'll have you guys
-            just fill out your own info there.
-            Project watchlist, I don't have like four projects there now
-            but we can go through way more,
-            way more agent builders that we've seen already.
-            Open issues, I haven't worked on this yet.
-            I wanted to do this together.
-            Back end design right now just pointing
-            towards Shannon's forge requirement stock.
-            But of course that's going to be heavily restructured
-            given the movement to cloud and the decision
-            to kind of work on a chat interface
-            based initial interactions.
-            The questionnaire, we have some
-            of the questionnaire ready so far
-            but we want to continue working on it.
-            Launch plan, it's work in progress.
-            We have some of it so far.
-            And then budget day will work on that.
-            That's the last piece.
-            So, just kind of going over the scope.
-            Oops, I pulled out the budget objective, sorry.
-            So I know we've had a million different discussions
-            about forge and all the things that's important for it
-            but I think the most important thing about forge
-            is the initial reason that we raised
-            which is like tracking robust agents,
-            making sure that people can actually use something
-            that works and it works without any hassle on their end.
-            They don't have to keep checking in on it.
-            Any errors, whatever, it's handled.
-            That's the most important thing that we can solve
-            and I want everything else to kind of be seen
-            as a second order problem after this mentality
-            of we want seamless automation of LMs.
-            Now when it comes to objectives like hopefully
-            this is stuff that as the forge team we've all gone over
-            but I just wanted to organize it all for us.
-            Today we need to figure out the perfect reasoning
-            and scripting stack and language that we're going to use
-            in order to actually solve that issue.
-            I know we've come quite far but I also know
-            that Shannon is going full time trying to do this
-            and once Vogel comes on board,
-            hopefully that'll catalyze that work.
-            Secondly comes down to the actual kind of like consumer side.
-            Like we need an interface and a product experience
-            that lets people utilize this without feeling overwhelmed,
-            without feeling like bored or like I want to click out of this,
-            I don't really want to work on this, et cetera.
-            One second.
-            Yeah.
-            And then finally the, oh, I should write anything for coming.
-            And then so we're just going over the PM doc.
-            I just want people to kind of share their thoughts
-            and pieces as the internal forge team
-            before I went over it with everybody in the stand up.
-            And then of course, following us being able to say,
-            we have solved this reasoning stack for some initial cases
-            and we've created an experience that will funnel
-            for people very easily and seamlessly.
-            That's when we can talk about kind of the Xcode
-            and the like here's a toolkit for devs to build on a piece
-            but I really want to look at dev buildability
-            and customization for devs to be a secondary
-            like second order issue and not something
-            that we should primarily concern ourselves with.
-            I really want it to be seen in this like one, two, three
-            sort of hierarchy of what we need to do.
-            So then I follow this template of what do we research?
-            What are we designing?
-            What are we developing?
-            What are we launching?
-            How are we drawing?
-            So the initial pieces that we need to research
-            are these fundamental use cases
-            and we can put together the fundamental nodes
-            that are common across those different use cases
-            for end users specifically for the consumer
-            that we want to target specifically.
-            And in order to figure that out,
-            we need to make sure that questionnaire is robust.
-            We need to put it out and get more information from people
-            and what they want to automate in their day-to-day life.
-            To like the research question, massive open question
-            of the scripting system that Shannon is building right now,
-            how do we simultaneously make sure
-            that it's something that can accommodate various nodes
-            without feeling bloated
-            and still having the same seamless experience for a user
-            and still having it feel like it's the same interaction
-            as if there was just one or two nodes available.
-            And thirdly, in the situation that we are releasing
-            a toolkit, we want to be able to find out
-            how do we actually integrate the automations
-            that are created by developers
-            into the final product experience?
-            So I think these are the three big pieces of research
-            so you can simply break down to consumer interest
-            on use case, actual flexibility of a complex system,
-            and how to bring back developers' ideas
-            or automations into that one centralized system.
-            Then in terms of design,
-            the initial UI is extremely important.
-            Right now, what we've been leaning on more than anything
-            is building on top of an adaptive chat interface,
-            what we've found from a lot of mainstream outlets,
-            their main concern is bots,
-            and the way that they look at bots
-            and the way they look at AI,
-            there's no real distinction between Claude and GPT
-            putting hundreds of millions of dollars towards AI
-            and somebody like Perplexity putting
-            three agent use cases on top of it,
-            like Search or Play with Docs.
-            So I want to lean in on the Perplexity side of this,
-            considering we have the ability to use open models
-            and we have the ability to do a lot more customizations
-            than they do, still being able to serve it in a simple way
-            and have people be like, wow,
-            this is far more useful than GPT or something else I'm using,
-            allows us to be much more of a direct competitor.
-            So I'm very interested in this being the design issue
-            that we want to tackle.
-            Sorry.
-            Next, it's important for us to design
-            the kind of intuitive consumer funnels.
-            This is like more of a retention
-            and growth research kind of thing,
-            to figure out, click to click button to button,
-            what is gonna keep users on?
-            What is gonna keep users saying,
-            this is not boring.
-            This is something that I feel like
-            is just one seamless flow of action.
-            And not, oh my God, I have to learn 50 things.
-            There's 100 buttons here, I don't know what I'm doing.
-            We want simple funnels.
-            Another thing that we need to design of course is the,
-            as we said here, the reasoning and scripting system
-            for this chat interface.
-            The back end nodes and architecture links directly to the,
-            sorry, I gotta fix that link.
-            Should be linking to this.
-            Which is the previous node-based technical overview
-            of what's up in all the nodes that Shannon had built out.
-            And this is something that we want to of course,
-            adapt towards the cloud and the chat interface,
-            but it contains all the technical information
-            of what we already have available.
-            So it's very important that we continue to design
-            on that end and fix that link.
-            And all you guys, you should have this shared with you now.
-            So you should be able to look alongside with me,
-            feel free to click through.
-            And then finally, we need to design
-            like the marketing and narrative.
-            We're working with Riva and working with Mike on this
-            on making sure that this is something that we can ship
-            as a story and we can explain to people
-            the importance of this seamlessness
-            and show them how useful something like this
-            can be malleting by example.
-            A development comes down to this too.
-            For development, we want to get
-            those fundamental common nodes down.
-            The cloud is really useful.
-            Shannon, I'd love if you want to expand on this
-            because we can implement any of the ML libraries we want.
-            We can build just one build for ourselves.
-            We don't have to try to accommodate
-            for every single type of system
-            like we did with the old forge.
-            - Yeah. - Yeah.
-            - Yeah, I was gonna say like, I know that like,
-            this is something that we were discussing
-            sort of in terms of fort planning.
-            You can see everyone else that wasn't there.
-            But like how we were building forge
-            is it was the tool we personally would want.
-            But where all people would, we're like, you know,
-            stacks of like, you know, multiple 40 90s
-            and $10,000 MacBooks and stuff.
-            The reality is the average consumer
-            wouldn't even be able to run like forge.
-            And even if it was like an agent with like two or three nodes
-            and it was just like homey 70
-            and would still just be so slow
-            and painful on a bad user experience.
-            So the advantage of moving the cloud is that, you know,
-            like we can, we can manage all that.".to_string(),
-        },
-        Message {
-            role: "assistant".to_string(),
-            content: "  <topic>- Okay, everybody's here, that's awesome.
-                        We're gonna upload and share a doc
-                        into the news research drive and share with all you guys.
-                        It is a Forge project management doc
-                        that's basically an analog to the network doc
-                        that was made put together
-                        from some of the compiled notes that we've all shared.
-                        Just wanna go over it, talk about comms,
-                        talk about responsibilities, talk about the project scope,
-                        et cetera, and wanna run through all of it,
-                        you guys, before the stand up.
-                        Ari, I'm happy to say you have no responsibilities
-                        inside of the current doc as it exists today.
-                        You have plenty of work cut out for you
-                        on the world segment already.
-                        And before I just jump into Forge,
-                        I'll just say on the world soon, et cetera.
-                        Thanks to the very hard work of VORPs
-                        and we're still cleaning up now by the new props,
-                        able to get really, really good results using Stonnet
-                        and even haiku over opus,
-                        like better than opus as results.
-                        So we're getting ready to bring that to you, Ari,
-                        next week to actually integrate into
-                        world, sim, and world clients.
-                        - Sick, I'm very excited.
-                        - Yeah, we shall save the monies.
-                        And we believe we will finally be a leg up over a website
-                        in terms of actual site functionality design,
-                        but we'll let everyone be the judge of that
-                        when we test during the next needs on Tuesday.
-                        And that being said, I'm just uploading the document
-                        to drive, I'm gonna share with everyone
-                        and I can stream it too.
-                        And tag, Kannen, thank you guys for coming
-                        very much, I'm happy you guys are here.
-                        I'm mostly being looking for feedback
-                        and thoughts from Shannon and Jay today
-                        right now on this before opening it up to everybody
-                        during the standup, if that's all right.
-                        Just share.
-                        - I think Kannen's just here 'cause he won't stay updated
-                        so that he can interact with the community better.
-                        - Perfect, that makes total sense.
-                        We do, I do wanna figure out about community management
-                        plans and community leading efforts, Kannen.
-                        So that's something we will talk about.
-                        I just wanna get the deep brass tags down first.
-                        I'm gonna start the show now.
-                        </topic>
-                        <topic>
-                        - Is that shaded in the channel?
-                        I can't see anything.
-                        - No, I'm sending it to everybody's news emails right now.
-                        - That's everyone.
-                        Okay, I think that's everyone that needs to see it right now.
-                        , I'll start streaming now also.
-                        Yay.
-                        (mumbling)
-                        (mumbling)
-                        (mumbling)
-                        Great.
-                        (mumbling)
-                        (mumbling)
-                        (mumbling)
-                        Okay, can everybody see okay?
-                        (mumbling)
-                        - Yep.
-                        Oh yeah, there we go.
-                        - Hey Greg.
-                        - I'm not on the best internet,
-                        so it might not be super clear
-                        which is why I wanna share it to everybody.
-                        I'm on the Kannen.
-                        You know, what's your email?
-                        - Kannen.newsresearch.com.
-                        - Okay, you guys should all have access now
-                        in case things are not working out.
-                        So I based this off of the conciliency PM doc.
-                        We have a couple pieces of this that are totally complete
-                        and then pieces of this that I wanna add to.
-                        And of course, like we should be iteratively working on all of it.
-                        But we've got an overview of what's in scope
-                        and what's out of scope very importantly as well.
-                        So we can lock in exactly what we need to be focused on.
-                        Then just a general matrix for like,
-                        who's responsible for what, who's accountable for doing it,
-                        who's gonna be helping with it.
-                        So people know who to reach out to
-                        when they have certain questions
-                        about different pieces of the project.
-                        I don't want five people messaging one person
-                        about each thing if that person's not the person
-                        who is the point man for that project.
-                        So we put that together too.
-                        Basic contact sheet, I'll have you guys
-                        just fill out your own info there.
-                        Project watchlist, I don't have like four projects there now
-                        but we can go through way more,
-                        way more agent builders that we've seen already.
-                        Open issues, I haven't worked on this yet.
-                        I wanted to do this together.
-                        Back end design right now just pointing
-                        towards Shannon's forge requirement stock.
-                        But of course that's going to be heavily restructured
-                        given the movement to cloud and the decision
-                        to kind of work on a chat interface
-                        based initial interactions.
-                        The questionnaire, we have some
-                        of the questionnaire ready so far
-                        but we want to continue working on it.
-                        Launch plan, it's work in progress.
-                        We have some of it so far.
-                        And then budget day will work on that.
-                        That's the last piece.
-                        So, just kind of going over the scope.
-                        Oops, I pulled out the budget objective, sorry.
-                        So I know we've had a million different discussions
-                        about forge and all the things that's important for it
-                        but I think the most important thing about forge
-                        is the initial reason that we raised
-                        which is like tracking robust agents,
-                        making sure that people can actually use something
-                        that works and it works without any hassle on their end.
-                        They don't have to keep checking in on it.
-                        Any errors, whatever, it's handled.
-                        That's the most important thing that we can solve
-                        and I want everything else to kind of be seen
-                        as a second order problem after this mentality
-                        of we want seamless automation of LMs.
-                        Now when it comes to objectives like hopefully
-                        this is stuff that as the forge team we've all gone over
-                        but I just wanted to organize it all for us.
-                        Today we need to figure out the perfect reasoning
-                        and scripting stack and language that we're going to use
-                        in order to actually solve that issue.
-                        I know we've come quite far but I also know
-                        that Shannon is going full time trying to do this
-                        and once Vogel comes on board,
-                        hopefully that'll catalyze that work.
-                        Secondly comes down to the actual kind of like consumer side.
-                        Like we need an interface and a product experience
-                        that lets people utilize this without feeling overwhelmed,
-                        without feeling like bored or like I want to click out of this,
-                        I don't really want to work on this, et cetera.
-                        One second.
-                        Yeah.
-                        And then finally the, oh, I should write anything for coming.
-                        And then so we're just going over the PM doc.
-                        I just want people to kind of share their thoughts
-                        and pieces as the internal forge team
-                        before I went over it with everybody in the stand up.
-                        And then of course, following us being able to say,
-                        we have solved this reasoning stack for some initial cases
-                        and we've created an experience that will funnel
-                        for people very easily and seamlessly.
-                        That's when we can talk about kind of the Xcode
-                        and the like here's a toolkit for devs to build on a piece
-                        but I really want to look at dev buildability
-                        and customization for devs to be a secondary
-                        like second order issue and not something
-                        that we should primarily concern ourselves with.
-                        I really want it to be seen in this like one, two, three
-                        sort of hierarchy of what we need to do.
-                        So then I follow this template of what do we research?
-                        What are we designing?
-                        What are we developing?
-                        What are we launching?
-                        How are we drawing?
-                        So the initial pieces that we need to research
-                        are these fundamental use cases
-                        and we can put together the fundamental nodes
-                        that are common across those different use cases
-                        for end users specifically for the consumer
-                        that we want to target specifically.
-                        And in order to figure that out,
-                        we need to make sure that questionnaire is robust.
-                        We need to put it out and get more information from people
-                        and what they want to automate in their day-to-day life.
-                        To like the research question, massive open question
-                        of the scripting system that Shannon is building right now,
-                        how do we simultaneously make sure
-                        that it's something that can accommodate various nodes
-                        without feeling bloated
-                        and still having the same seamless experience for a user
-                        and still having it feel like it's the same interaction
-                        as if there was just one or two nodes available.
-                        And thirdly, in the situation that we are releasing
-                        a toolkit, we want to be able to find out
-                        how do we actually integrate the automations
-                        that are created by developers
-                        into the final product experience?
-                        So I think these are the three big pieces of research
-                        so you can simply break down to consumer interest
-                        on use case, actual flexibility of a complex system,
-                        and how to bring back developers' ideas
-                        or automations into that one centralized system.
-                        Then in terms of design,
-                        the initial UI is extremely important.
-                        Right now, what we've been leaning on more than anything
-                        is building on top of an adaptive chat interface,
-                        what we've found from a lot of mainstream outlets,
-                        their main concern is bots,
-                        and the way that they look at bots
-                        and the way they look at AI,
-                        there's no real distinction between Claude and GPT
-                        putting hundreds of millions of dollars towards AI
-                        and somebody like Perplexity putting
-                        three agent use cases on top of it,
-                        like Search or Play with Docs.
-                        So I want to lean in on the Perplexity side of this,
-                        considering we have the ability to use open models
-                        and we have the ability to do a lot more customizations
-                        than they do, still being able to serve it in a simple way
-                        and have people be like, wow,
-                        this is far more useful than GPT or something else I'm using,
-                        allows us to be much more of a direct competitor.
-                        So I'm very interested in this being the design issue
-                        that we want to tackle.
-                        Sorry.
-                        Next, it's important for us to design
-                        the kind of intuitive consumer funnels.
-                        This is like more of a retention
-                        and growth research kind of thing,
-                        to figure out, click to click button to button,
-                        what is gonna keep users on?
-                        What is gonna keep users saying,
-                        this is not boring.
-                        This is something that I feel like
-                        is just one seamless flow of action.
-                        And not, oh my God, I have to learn 50 things.
-                        There's 100 buttons here, I don't know what I'm doing.
-                        We want simple funnels.
-                        Another thing that we need to design of course is the,
-                        as we said here, the reasoning and scripting system
-                        for this chat interface.
-                        The back end nodes and architecture links directly to the,
-                        sorry, I gotta fix that link.
-                        Should be linking to this.
-                        Which is the previous node-based technical overview
-                        of what's up in all the nodes that Shannon had built out.
-                        And this is something that we want to of course,
-                        adapt towards the cloud and the chat interface,
-                        but it contains all the technical information
-                        of what we already have available.
-                        So it's very important that we continue to design
-                        on that end and fix that link.
-                        And all you guys, you should have this shared with you now.
-                        So you should be able to look alongside with me,
-                        feel free to click through.
-                        And then finally, we need to design
-                        like the marketing and narrative.
-                        We're working with Riva and working with Mike on this
-                        on making sure that this is something that we can ship
-                        as a story and we can explain to people
-                        the importance of this seamlessness
-                        and show them how useful something like this
-                        can be malleting by example.
-                        A development comes down to this too.
-                        For development, we want to get
-                        those fundamental common nodes down.
-                        The cloud is really useful.
-                        Shannon, I'd love if you want to expand on this
-                        because we can implement any of the ML libraries we want.
-                        We can build just one build for ourselves.
-                        We don't have to try to accommodate
-                        for every single type of system
-                        like we did with the old forge.
-                        - Yeah. - Yeah.
-                        - Yeah, I was gonna say like, I know that like,
-                        this is something that we were discussing
-                        sort of in terms of fort planning.
-                        You can see everyone else that wasn't there.
-                        But like how we were building forge
-                        is it was the tool we personally would want.
-                        But where all people would, we're like, you know,
-                        stacks of like, you know, multiple 40 90s
-                        and $10,000 MacBooks and stuff.
-                        The reality is the average consumer
-                        wouldn't even be able to run like forge.
-                        And even if it was like an agent with like two or three nodes
-                        and it was just like homey 70
-                        and would still just be so slow
-                        and painful on a bad user experience.
-                        So the advantage of moving the cloud is that, you know,
-                        like we can, we can manage all that.
-                        ".to_string()
-                    }
+        }
+        // Message {
+        //     role: "user".to_string(),
+        //     content: "Okay, everybody's here, that's awesome.
+        //     We're gonna upload and share a doc
+        //     into the news research drive and share with all you guys.
+        //     It is a Forge project management doc
+        //     that's basically an analog to the network doc
+        //     that was made put together
+        //     from some of the compiled notes that we've all shared.
+        //     Just wanna go over it, talk about comms,
+        //     talk about responsibilities, talk about the project scope,
+        //     et cetera, and wanna run through all of it,
+        //     you guys, before the stand up.
+        //     Ari, I'm happy to say you have no responsibilities
+        //     inside of the current doc as it exists today.
+        //     You have plenty of work cut out for you
+        //     on the world segment already.
+        //     And before I just jump into Forge,
+        //     I'll just say on the world soon, et cetera.
+        //     Thanks to the very hard work of VORPs
+        //     and we're still cleaning up now by the new props,
+        //     able to get really, really good results using Stonnet
+        //     and even haiku over opus,
+        //     like better than opus as results.
+        //     So we're getting ready to bring that to you, Ari,
+        //     next week to actually integrate into
+        //     world, sim, and world clients.
+        //     - Sick, I'm very excited.
+        //     - Yeah, we shall save the monies.
+        //     And we believe we will finally be a leg up over a website
+        //     in terms of actual site functionality design,
+        //     but we'll let everyone be the judge of that
+        //     when we test during the next needs on Tuesday.
+        //     And that being said, I'm just uploading the document
+        //     to drive, I'm gonna share with everyone
+        //     and I can stream it too.
+        //     And tag, Kannen, thank you guys for coming
+        //     very much, I'm happy you guys are here.
+        //     I'm mostly being looking for feedback
+        //     and thoughts from Shannon and Jay today
+        //     right now on this before opening it up to everybody
+        //     during the standup, if that's all right.
+        //     Just share.
+        //     - I think Kannen's just here 'cause he won't stay updated
+        //     so that he can interact with the community better.
+        //     - Perfect, that makes total sense.
+        //     We do, I do wanna figure out about community management
+        //     plans and community leading efforts, Kannen.
+        //     So that's something we will talk about.
+        //     I just wanna get the deep brass tags down first.
+        //     I'm gonna start the show now.
+        //     - Is that shaded in the channel?
+        //     I can't see anything.
+        //     - No, I'm sending it to everybody's news emails right now.
+        //     - That's everyone.
+        //     Okay, I think that's everyone that needs to see it right now.
+        //     , I'll start streaming now also.
+        //     Yay.
+        //     (mumbling)
+        //     (mumbling)
+        //     (mumbling)
+        //     Great.
+        //     (mumbling)
+        //     (mumbling)
+        //     (mumbling)
+        //     Okay, can everybody see okay?
+        //     (mumbling)
+        //     - Yep.
+        //     Oh yeah, there we go.
+        //     - Hey Greg.
+        //     - I'm not on the best internet,
+        //     so it might not be super clear
+        //     which is why I wanna share it to everybody.
+        //     I'm on the Kannen.
+        //     You know, what's your email?
+        //     - Kannen.newsresearch.com.
+        //     - Okay, you guys should all have access now
+        //     in case things are not working out.
+        //     So I based this off of the conciliency PM doc.
+        //     We have a couple pieces of this that are totally complete
+        //     and then pieces of this that I wanna add to.
+        //     And of course, like we should be iteratively working on all of it.
+        //     But we've got an overview of what's in scope
+        //     and what's out of scope very importantly as well.
+        //     So we can lock in exactly what we need to be focused on.
+        //     Then just a general matrix for like,
+        //     who's responsible for what, who's accountable for doing it,
+        //     who's gonna be helping with it.
+        //     So people know who to reach out to
+        //     when they have certain questions
+        //     about different pieces of the project.
+        //     I don't want five people messaging one person
+        //     about each thing if that person's not the person
+        //     who is the point man for that project.
+        //     So we put that together too.
+        //     Basic contact sheet, I'll have you guys
+        //     just fill out your own info there.
+        //     Project watchlist, I don't have like four projects there now
+        //     but we can go through way more,
+        //     way more agent builders that we've seen already.
+        //     Open issues, I haven't worked on this yet.
+        //     I wanted to do this together.
+        //     Back end design right now just pointing
+        //     towards Shannon's forge requirement stock.
+        //     But of course that's going to be heavily restructured
+        //     given the movement to cloud and the decision
+        //     to kind of work on a chat interface
+        //     based initial interactions.
+        //     The questionnaire, we have some
+        //     of the questionnaire ready so far
+        //     but we want to continue working on it.
+        //     Launch plan, it's work in progress.
+        //     We have some of it so far.
+        //     And then budget day will work on that.
+        //     That's the last piece.
+        //     So, just kind of going over the scope.
+        //     Oops, I pulled out the budget objective, sorry.
+        //     So I know we've had a million different discussions
+        //     about forge and all the things that's important for it
+        //     but I think the most important thing about forge
+        //     is the initial reason that we raised
+        //     which is like tracking robust agents,
+        //     making sure that people can actually use something
+        //     that works and it works without any hassle on their end.
+        //     They don't have to keep checking in on it.
+        //     Any errors, whatever, it's handled.
+        //     That's the most important thing that we can solve
+        //     and I want everything else to kind of be seen
+        //     as a second order problem after this mentality
+        //     of we want seamless automation of LMs.
+        //     Now when it comes to objectives like hopefully
+        //     this is stuff that as the forge team we've all gone over
+        //     but I just wanted to organize it all for us.
+        //     Today we need to figure out the perfect reasoning
+        //     and scripting stack and language that we're going to use
+        //     in order to actually solve that issue.
+        //     I know we've come quite far but I also know
+        //     that Shannon is going full time trying to do this
+        //     and once Vogel comes on board,
+        //     hopefully that'll catalyze that work.
+        //     Secondly comes down to the actual kind of like consumer side.
+        //     Like we need an interface and a product experience
+        //     that lets people utilize this without feeling overwhelmed,
+        //     without feeling like bored or like I want to click out of this,
+        //     I don't really want to work on this, et cetera.
+        //     One second.
+        //     Yeah.
+        //     And then finally the, oh, I should write anything for coming.
+        //     And then so we're just going over the PM doc.
+        //     I just want people to kind of share their thoughts
+        //     and pieces as the internal forge team
+        //     before I went over it with everybody in the stand up.
+        //     And then of course, following us being able to say,
+        //     we have solved this reasoning stack for some initial cases
+        //     and we've created an experience that will funnel
+        //     for people very easily and seamlessly.
+        //     That's when we can talk about kind of the Xcode
+        //     and the like here's a toolkit for devs to build on a piece
+        //     but I really want to look at dev buildability
+        //     and customization for devs to be a secondary
+        //     like second order issue and not something
+        //     that we should primarily concern ourselves with.
+        //     I really want it to be seen in this like one, two, three
+        //     sort of hierarchy of what we need to do.
+        //     So then I follow this template of what do we research?
+        //     What are we designing?
+        //     What are we developing?
+        //     What are we launching?
+        //     How are we drawing?
+        //     So the initial pieces that we need to research
+        //     are these fundamental use cases
+        //     and we can put together the fundamental nodes
+        //     that are common across those different use cases
+        //     for end users specifically for the consumer
+        //     that we want to target specifically.
+        //     And in order to figure that out,
+        //     we need to make sure that questionnaire is robust.
+        //     We need to put it out and get more information from people
+        //     and what they want to automate in their day-to-day life.
+        //     To like the research question, massive open question
+        //     of the scripting system that Shannon is building right now,
+        //     how do we simultaneously make sure
+        //     that it's something that can accommodate various nodes
+        //     without feeling bloated
+        //     and still having the same seamless experience for a user
+        //     and still having it feel like it's the same interaction
+        //     as if there was just one or two nodes available.
+        //     And thirdly, in the situation that we are releasing
+        //     a toolkit, we want to be able to find out
+        //     how do we actually integrate the automations
+        //     that are created by developers
+        //     into the final product experience?
+        //     So I think these are the three big pieces of research
+        //     so you can simply break down to consumer interest
+        //     on use case, actual flexibility of a complex system,
+        //     and how to bring back developers' ideas
+        //     or automations into that one centralized system.
+        //     Then in terms of design,
+        //     the initial UI is extremely important.
+        //     Right now, what we've been leaning on more than anything
+        //     is building on top of an adaptive chat interface,
+        //     what we've found from a lot of mainstream outlets,
+        //     their main concern is bots,
+        //     and the way that they look at bots
+        //     and the way they look at AI,
+        //     there's no real distinction between Claude and GPT
+        //     putting hundreds of millions of dollars towards AI
+        //     and somebody like Perplexity putting
+        //     three agent use cases on top of it,
+        //     like Search or Play with Docs.
+        //     So I want to lean in on the Perplexity side of this,
+        //     considering we have the ability to use open models
+        //     and we have the ability to do a lot more customizations
+        //     than they do, still being able to serve it in a simple way
+        //     and have people be like, wow,
+        //     this is far more useful than GPT or something else I'm using,
+        //     allows us to be much more of a direct competitor.
+        //     So I'm very interested in this being the design issue
+        //     that we want to tackle.
+        //     Sorry.
+        //     Next, it's important for us to design
+        //     the kind of intuitive consumer funnels.
+        //     This is like more of a retention
+        //     and growth research kind of thing,
+        //     to figure out, click to click button to button,
+        //     what is gonna keep users on?
+        //     What is gonna keep users saying,
+        //     this is not boring.
+        //     This is something that I feel like
+        //     is just one seamless flow of action.
+        //     And not, oh my God, I have to learn 50 things.
+        //     There's 100 buttons here, I don't know what I'm doing.
+        //     We want simple funnels.
+        //     Another thing that we need to design of course is the,
+        //     as we said here, the reasoning and scripting system
+        //     for this chat interface.
+        //     The back end nodes and architecture links directly to the,
+        //     sorry, I gotta fix that link.
+        //     Should be linking to this.
+        //     Which is the previous node-based technical overview
+        //     of what's up in all the nodes that Shannon had built out.
+        //     And this is something that we want to of course,
+        //     adapt towards the cloud and the chat interface,
+        //     but it contains all the technical information
+        //     of what we already have available.
+        //     So it's very important that we continue to design
+        //     on that end and fix that link.
+        //     And all you guys, you should have this shared with you now.
+        //     So you should be able to look alongside with me,
+        //     feel free to click through.
+        //     And then finally, we need to design
+        //     like the marketing and narrative.
+        //     We're working with Riva and working with Mike on this
+        //     on making sure that this is something that we can ship
+        //     as a story and we can explain to people
+        //     the importance of this seamlessness
+        //     and show them how useful something like this
+        //     can be malleting by example.
+        //     A development comes down to this too.
+        //     For development, we want to get
+        //     those fundamental common nodes down.
+        //     The cloud is really useful.
+        //     Shannon, I'd love if you want to expand on this
+        //     because we can implement any of the ML libraries we want.
+        //     We can build just one build for ourselves.
+        //     We don't have to try to accommodate
+        //     for every single type of system
+        //     like we did with the old forge.
+        //     - Yeah. - Yeah.
+        //     - Yeah, I was gonna say like, I know that like,
+        //     this is something that we were discussing
+        //     sort of in terms of fort planning.
+        //     You can see everyone else that wasn't there.
+        //     But like how we were building forge
+        //     is it was the tool we personally would want.
+        //     But where all people would, we're like, you know,
+        //     stacks of like, you know, multiple 40 90s
+        //     and $10,000 MacBooks and stuff.
+        //     The reality is the average consumer
+        //     wouldn't even be able to run like forge.
+        //     And even if it was like an agent with like two or three nodes
+        //     and it was just like homey 70
+        //     and would still just be so slow
+        //     and painful on a bad user experience.
+        //     So the advantage of moving the cloud is that, you know,
+        //     like we can, we can manage all that.".to_string(),
+        // },
+        // Message {
+        //     role: "assistant".to_string(),
+        //     content: "  <topic>- Okay, everybody's here, that's awesome.
+        //                 We're gonna upload and share a doc
+        //                 into the news research drive and share with all you guys.
+        //                 It is a Forge project management doc
+        //                 that's basically an analog to the network doc
+        //                 that was made put together
+        //                 from some of the compiled notes that we've all shared.
+        //                 Just wanna go over it, talk about comms,
+        //                 talk about responsibilities, talk about the project scope,
+        //                 et cetera, and wanna run through all of it,
+        //                 you guys, before the stand up.
+        //                 Ari, I'm happy to say you have no responsibilities
+        //                 inside of the current doc as it exists today.
+        //                 You have plenty of work cut out for you
+        //                 on the world segment already.
+        //                 And before I just jump into Forge,
+        //                 I'll just say on the world soon, et cetera.
+        //                 Thanks to the very hard work of VORPs
+        //                 and we're still cleaning up now by the new props,
+        //                 able to get really, really good results using Stonnet
+        //                 and even haiku over opus,
+        //                 like better than opus as results.
+        //                 So we're getting ready to bring that to you, Ari,
+        //                 next week to actually integrate into
+        //                 world, sim, and world clients.
+        //                 - Sick, I'm very excited.
+        //                 - Yeah, we shall save the monies.
+        //                 And we believe we will finally be a leg up over a website
+        //                 in terms of actual site functionality design,
+        //                 but we'll let everyone be the judge of that
+        //                 when we test during the next needs on Tuesday.
+        //                 And that being said, I'm just uploading the document
+        //                 to drive, I'm gonna share with everyone
+        //                 and I can stream it too.
+        //                 And tag, Kannen, thank you guys for coming
+        //                 very much, I'm happy you guys are here.
+        //                 I'm mostly being looking for feedback
+        //                 and thoughts from Shannon and Jay today
+        //                 right now on this before opening it up to everybody
+        //                 during the standup, if that's all right.
+        //                 Just share.
+        //                 - I think Kannen's just here 'cause he won't stay updated
+        //                 so that he can interact with the community better.
+        //                 - Perfect, that makes total sense.
+        //                 We do, I do wanna figure out about community management
+        //                 plans and community leading efforts, Kannen.
+        //                 So that's something we will talk about.
+        //                 I just wanna get the deep brass tags down first.
+        //                 I'm gonna start the show now.
+        //                 </topic>
+        //                 <topic>
+        //                 - Is that shaded in the channel?
+        //                 I can't see anything.
+        //                 - No, I'm sending it to everybody's news emails right now.
+        //                 - That's everyone.
+        //                 Okay, I think that's everyone that needs to see it right now.
+        //                 , I'll start streaming now also.
+        //                 Yay.
+        //                 (mumbling)
+        //                 (mumbling)
+        //                 (mumbling)
+        //                 Great.
+        //                 (mumbling)
+        //                 (mumbling)
+        //                 (mumbling)
+        //                 Okay, can everybody see okay?
+        //                 (mumbling)
+        //                 - Yep.
+        //                 Oh yeah, there we go.
+        //                 - Hey Greg.
+        //                 - I'm not on the best internet,
+        //                 so it might not be super clear
+        //                 which is why I wanna share it to everybody.
+        //                 I'm on the Kannen.
+        //                 You know, what's your email?
+        //                 - Kannen.newsresearch.com.
+        //                 - Okay, you guys should all have access now
+        //                 in case things are not working out.
+        //                 So I based this off of the conciliency PM doc.
+        //                 We have a couple pieces of this that are totally complete
+        //                 and then pieces of this that I wanna add to.
+        //                 And of course, like we should be iteratively working on all of it.
+        //                 But we've got an overview of what's in scope
+        //                 and what's out of scope very importantly as well.
+        //                 So we can lock in exactly what we need to be focused on.
+        //                 Then just a general matrix for like,
+        //                 who's responsible for what, who's accountable for doing it,
+        //                 who's gonna be helping with it.
+        //                 So people know who to reach out to
+        //                 when they have certain questions
+        //                 about different pieces of the project.
+        //                 I don't want five people messaging one person
+        //                 about each thing if that person's not the person
+        //                 who is the point man for that project.
+        //                 So we put that together too.
+        //                 Basic contact sheet, I'll have you guys
+        //                 just fill out your own info there.
+        //                 Project watchlist, I don't have like four projects there now
+        //                 but we can go through way more,
+        //                 way more agent builders that we've seen already.
+        //                 Open issues, I haven't worked on this yet.
+        //                 I wanted to do this together.
+        //                 Back end design right now just pointing
+        //                 towards Shannon's forge requirement stock.
+        //                 But of course that's going to be heavily restructured
+        //                 given the movement to cloud and the decision
+        //                 to kind of work on a chat interface
+        //                 based initial interactions.
+        //                 The questionnaire, we have some
+        //                 of the questionnaire ready so far
+        //                 but we want to continue working on it.
+        //                 Launch plan, it's work in progress.
+        //                 We have some of it so far.
+        //                 And then budget day will work on that.
+        //                 That's the last piece.
+        //                 So, just kind of going over the scope.
+        //                 Oops, I pulled out the budget objective, sorry.
+        //                 So I know we've had a million different discussions
+        //                 about forge and all the things that's important for it
+        //                 but I think the most important thing about forge
+        //                 is the initial reason that we raised
+        //                 which is like tracking robust agents,
+        //                 making sure that people can actually use something
+        //                 that works and it works without any hassle on their end.
+        //                 They don't have to keep checking in on it.
+        //                 Any errors, whatever, it's handled.
+        //                 That's the most important thing that we can solve
+        //                 and I want everything else to kind of be seen
+        //                 as a second order problem after this mentality
+        //                 of we want seamless automation of LMs.
+        //                 Now when it comes to objectives like hopefully
+        //                 this is stuff that as the forge team we've all gone over
+        //                 but I just wanted to organize it all for us.
+        //                 Today we need to figure out the perfect reasoning
+        //                 and scripting stack and language that we're going to use
+        //                 in order to actually solve that issue.
+        //                 I know we've come quite far but I also know
+        //                 that Shannon is going full time trying to do this
+        //                 and once Vogel comes on board,
+        //                 hopefully that'll catalyze that work.
+        //                 Secondly comes down to the actual kind of like consumer side.
+        //                 Like we need an interface and a product experience
+        //                 that lets people utilize this without feeling overwhelmed,
+        //                 without feeling like bored or like I want to click out of this,
+        //                 I don't really want to work on this, et cetera.
+        //                 One second.
+        //                 Yeah.
+        //                 And then finally the, oh, I should write anything for coming.
+        //                 And then so we're just going over the PM doc.
+        //                 I just want people to kind of share their thoughts
+        //                 and pieces as the internal forge team
+        //                 before I went over it with everybody in the stand up.
+        //                 And then of course, following us being able to say,
+        //                 we have solved this reasoning stack for some initial cases
+        //                 and we've created an experience that will funnel
+        //                 for people very easily and seamlessly.
+        //                 That's when we can talk about kind of the Xcode
+        //                 and the like here's a toolkit for devs to build on a piece
+        //                 but I really want to look at dev buildability
+        //                 and customization for devs to be a secondary
+        //                 like second order issue and not something
+        //                 that we should primarily concern ourselves with.
+        //                 I really want it to be seen in this like one, two, three
+        //                 sort of hierarchy of what we need to do.
+        //                 So then I follow this template of what do we research?
+        //                 What are we designing?
+        //                 What are we developing?
+        //                 What are we launching?
+        //                 How are we drawing?
+        //                 So the initial pieces that we need to research
+        //                 are these fundamental use cases
+        //                 and we can put together the fundamental nodes
+        //                 that are common across those different use cases
+        //                 for end users specifically for the consumer
+        //                 that we want to target specifically.
+        //                 And in order to figure that out,
+        //                 we need to make sure that questionnaire is robust.
+        //                 We need to put it out and get more information from people
+        //                 and what they want to automate in their day-to-day life.
+        //                 To like the research question, massive open question
+        //                 of the scripting system that Shannon is building right now,
+        //                 how do we simultaneously make sure
+        //                 that it's something that can accommodate various nodes
+        //                 without feeling bloated
+        //                 and still having the same seamless experience for a user
+        //                 and still having it feel like it's the same interaction
+        //                 as if there was just one or two nodes available.
+        //                 And thirdly, in the situation that we are releasing
+        //                 a toolkit, we want to be able to find out
+        //                 how do we actually integrate the automations
+        //                 that are created by developers
+        //                 into the final product experience?
+        //                 So I think these are the three big pieces of research
+        //                 so you can simply break down to consumer interest
+        //                 on use case, actual flexibility of a complex system,
+        //                 and how to bring back developers' ideas
+        //                 or automations into that one centralized system.
+        //                 Then in terms of design,
+        //                 the initial UI is extremely important.
+        //                 Right now, what we've been leaning on more than anything
+        //                 is building on top of an adaptive chat interface,
+        //                 what we've found from a lot of mainstream outlets,
+        //                 their main concern is bots,
+        //                 and the way that they look at bots
+        //                 and the way they look at AI,
+        //                 there's no real distinction between Claude and GPT
+        //                 putting hundreds of millions of dollars towards AI
+        //                 and somebody like Perplexity putting
+        //                 three agent use cases on top of it,
+        //                 like Search or Play with Docs.
+        //                 So I want to lean in on the Perplexity side of this,
+        //                 considering we have the ability to use open models
+        //                 and we have the ability to do a lot more customizations
+        //                 than they do, still being able to serve it in a simple way
+        //                 and have people be like, wow,
+        //                 this is far more useful than GPT or something else I'm using,
+        //                 allows us to be much more of a direct competitor.
+        //                 So I'm very interested in this being the design issue
+        //                 that we want to tackle.
+        //                 Sorry.
+        //                 Next, it's important for us to design
+        //                 the kind of intuitive consumer funnels.
+        //                 This is like more of a retention
+        //                 and growth research kind of thing,
+        //                 to figure out, click to click button to button,
+        //                 what is gonna keep users on?
+        //                 What is gonna keep users saying,
+        //                 this is not boring.
+        //                 This is something that I feel like
+        //                 is just one seamless flow of action.
+        //                 And not, oh my God, I have to learn 50 things.
+        //                 There's 100 buttons here, I don't know what I'm doing.
+        //                 We want simple funnels.
+        //                 Another thing that we need to design of course is the,
+        //                 as we said here, the reasoning and scripting system
+        //                 for this chat interface.
+        //                 The back end nodes and architecture links directly to the,
+        //                 sorry, I gotta fix that link.
+        //                 Should be linking to this.
+        //                 Which is the previous node-based technical overview
+        //                 of what's up in all the nodes that Shannon had built out.
+        //                 And this is something that we want to of course,
+        //                 adapt towards the cloud and the chat interface,
+        //                 but it contains all the technical information
+        //                 of what we already have available.
+        //                 So it's very important that we continue to design
+        //                 on that end and fix that link.
+        //                 And all you guys, you should have this shared with you now.
+        //                 So you should be able to look alongside with me,
+        //                 feel free to click through.
+        //                 And then finally, we need to design
+        //                 like the marketing and narrative.
+        //                 We're working with Riva and working with Mike on this
+        //                 on making sure that this is something that we can ship
+        //                 as a story and we can explain to people
+        //                 the importance of this seamlessness
+        //                 and show them how useful something like this
+        //                 can be malleting by example.
+        //                 A development comes down to this too.
+        //                 For development, we want to get
+        //                 those fundamental common nodes down.
+        //                 The cloud is really useful.
+        //                 Shannon, I'd love if you want to expand on this
+        //                 because we can implement any of the ML libraries we want.
+        //                 We can build just one build for ourselves.
+        //                 We don't have to try to accommodate
+        //                 for every single type of system
+        //                 like we did with the old forge.
+        //                 - Yeah. - Yeah.
+        //                 - Yeah, I was gonna say like, I know that like,
+        //                 this is something that we were discussing
+        //                 sort of in terms of fort planning.
+        //                 You can see everyone else that wasn't there.
+        //                 But like how we were building forge
+        //                 is it was the tool we personally would want.
+        //                 But where all people would, we're like, you know,
+        //                 stacks of like, you know, multiple 40 90s
+        //                 and $10,000 MacBooks and stuff.
+        //                 The reality is the average consumer
+        //                 wouldn't even be able to run like forge.
+        //                 And even if it was like an agent with like two or three nodes
+        //                 and it was just like homey 70
+        //                 and would still just be so slow
+        //                 and painful on a bad user experience.
+        //                 So the advantage of moving the cloud is that, you know,
+        //                 like we can, we can manage all that.
+        //                 ".to_string()
+        //             }
                 ];
 }
 
