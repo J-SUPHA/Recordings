@@ -7,6 +7,7 @@ mod helper;
 use helper::{split_into_chunks, parse_topics, send_groq_api_request};
 mod prompts;
 use prompts::Message;
+mod db;
 
 
 
@@ -158,6 +159,7 @@ impl Sst {
         // 1 . naive - write the summarized output straight into a google doc - this has already been done with _output
         // 2. add another parsing step to the raw chunk ask the llm to extract any and all action items and then write those down into a google doc
         // 3. add a databse integration with rag and allow a user to chat directly with the meeting notes
+        // 4  add optionality so that the user can choose exactly what they want to do with all this information
 
         // within total
 
@@ -207,9 +209,6 @@ impl Sst {
             .output()                   // Executes the command as a child process
             .expect("Failed to execute command 2");
             // 1HFD4EzZqm_i_AUn3NcbI1Bz8rZNRpENqQuB4oNGmbKY this is the document ID
-
-
-        
 
         Ok(())
     }
