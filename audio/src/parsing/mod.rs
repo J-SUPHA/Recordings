@@ -8,6 +8,7 @@ use helper::{split_into_chunks, parse_topics, send_groq_api_request};
 mod prompts;
 use prompts::Message;
 mod db;
+use db::Database;
 
 
 
@@ -123,8 +124,14 @@ impl Sst {
             }
         }
 
+        // We need to initialize a database if it has not been initialized already then we need to insert the text into the database using the
+        // text primary key with the the file-system in place. so that each text is unique ffo something along tjhe lines of forge_meets_1_snippet_1
+        // while insert is going one we need to call the embeddings model and embedd the actual text that is going into the model
+
+        let db = Database::new("audio_text.db")?;
+
         let mut llm = String::new();
-        let mut stored_vec = prompts::MINOR.to_vec();
+        let mut stored_vec = prompts::MINOR.to_vec(); //summarize via topic setnences
         for items in total.clone(){
             stored_vec.push(Message {
                 role: "user".to_string(),
@@ -161,10 +168,10 @@ impl Sst {
         // 3. add a databse integration with rag and allow a user to chat directly with the meeting notes
         // 4  add optionality so that the user can choose exactly what they want to do with all this information
 
-        // within total
+        // within total before all of this we need to 
 
         let mut prompt = prompts::ACTION.to_vec();
-        let mut google_output_2 = String::new();
+        let mut google_output_2 = String::new(); // this is the naive action extraction text file
         for items in total{
             prompt.push(Message {
                 role: "user".to_string(),
@@ -197,9 +204,9 @@ impl Sst {
             .arg("--write")
             .arg(google_output_2)
             .output()
-            .expect("Failed to execute command 1");
+            .expect("Failed to execute command 1"); // naive action items google doc write up 
 
-        println!("Rexecuting the code in python");
+        println!("Rexecuting the code in python"); 
 
       
         let _output = Command::new("python3")
