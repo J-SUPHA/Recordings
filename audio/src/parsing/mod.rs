@@ -129,6 +129,30 @@ impl Sst {
         // while insert is going one we need to call the embeddings model and embedd the actual text that is going into the model
 
         let db = Database::new("audio_text.db")?;
+        db.init().await?;
+
+        // go back and search for the name of the transcript file 
+        // name of the audio file is found
+
+        let answer = db.check_if_audio_exists(&self.audio_file).await; // check if the audio file exists in the database
+
+        match answer {
+            Ok(true) => {
+                println!("Audio file already exists in the database. will retrieve the data.");
+                // we can store the data - but then append and then use the data directly
+            }
+            Ok(false) => {
+                println!("Audio file does not exist in the database.");
+                for items in total.clone().into_iter() {
+                    
+                }
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+            }
+        }
+
+        
 
         let mut llm = String::new();
         let mut stored_vec = prompts::MINOR.to_vec(); //summarize via topic setnences
