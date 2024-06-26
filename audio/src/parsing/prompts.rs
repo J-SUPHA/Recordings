@@ -691,6 +691,15 @@ lazy_static! {
 }
 
 lazy_static! {
+    pub static ref CHAT: [Message; 1] = [
+        Message {
+            role: "system".to_string(),
+            content : "You will initially receive some infomration or context on a particular topic. You will then be asked a question on that topic. Please give a short and concise answer to the question".to_string()
+        }
+    ];
+}
+
+lazy_static! {
     pub static ref ACTION: [Message; 5] = [
         Message {
             role: "system".to_string(),
