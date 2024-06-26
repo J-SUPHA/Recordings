@@ -1,7 +1,7 @@
 
 use std::fmt;
 use serde_json::Error as SerdeJsonError;
-
+use rusqlite::Error as RusqliteError;
 
 
 #[derive(Debug)]
@@ -9,6 +9,7 @@ pub enum AppError {
     IoError(std::io::Error),
     PortAudioError(portaudio::Error),
     SerdeJsonError(SerdeJsonError),
+    RusqliteError(RusqliteError),
     Other(String),  // For other types of errors
 }
 
@@ -18,6 +19,7 @@ impl fmt::Display for AppError {
             AppError::IoError(e) => write!(f, "IO Error: {}", e),
             AppError::PortAudioError(e) => write!(f, "PortAudio Error: {}", e),
             AppError::Other(e) => write!(f, "Other Error: {}", e),
+            AppError::RusqliteError(e) => write!(f, "Rusqlite Error: {}", e),
             AppError::SerdeJsonError(e) => write!(f, "Serde JSON Error: {}", e),
         }
     }
@@ -36,5 +38,11 @@ impl From<std::io::Error> for AppError {
 impl From<portaudio::Error> for AppError {
     fn from(e: portaudio::Error) -> Self {
         AppError::PortAudioError(e)
+    }
+}
+
+impl From<rusqlite::Error> for AppError {
+    fn from(error: rusqlite::Error) -> Self {
+        AppError::RusqliteError(error)
     }
 }
