@@ -1,4 +1,6 @@
-
+use super::prompts;
+use crate::AppError;
+use std::process::Command;
 
 // main splitter so that the LLM can handle the text that is coming in
 pub fn split_into_chunks(input: &str, chunk_size: usize) -> Vec<String> {
@@ -126,4 +128,91 @@ pub async fn send_groq_api_request(
         }
     }
     return Err("Failed to send request after 3 retries".to_string());
+}
+
+
+pub async fn summarize_and_send(
+    groq_key: String,
+    total: &Vec<String>,
+    action : bool
+) -> Result<(), AppError> {
+
+    let mut prompt: Vec<prompts::Message> = if action {
+        prompts::ACTION.to_vec()
+    }else {
+        prompts::MINOR.to_vec()
+    };
+    
+    let mut google_output = String::new();
+    for items in total.clone() {
+        prompt.push( 
+            prompts::Message{
+                role: "user".to_string(),
+                content: items
+            }
+        );
+        let request_body = serde_json::json!({
+            "model": "Llama3-70b-8192",
+            "messages": prompt.clone()
+        });
+        prompt.pop();
+        let response = send_groq_api_request(groq_key.clone(), request_body);
+
+        match response.await {
+            Ok(response) => {
+                google_output.push_str(&response);
+            }
+            Err(e) => {
+                eprintln!("Error occured while sending request to Groq API: {:?}", e);
+                return Err(AppError::Other(e));
+            }
+        }
+    }
+    let _output = Command::new("python3")
+        .arg("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/parsing/google_docs.py")
+        .arg("--write")
+        .arg(google_output)
+        .output()
+        .expect("Failed to execute command");
+    return Ok(())
+
+    // 1HFD4EzZqm_i_AUn3NcbI1Bz8rZNRpENqQuB4oNGmbKY this is the document ID
+
+}
+
+
+pub async fn summarize_raw(groq_key: String, text: String, action: bool) -> Result<(), AppError> {
+    let mut prompt: Vec<prompts::Message> = if action {
+        prompts::ACTION.to_vec()
+    }else {
+        prompts::MINOR.to_vec()
+    };
+    prompt.push(
+        prompts::Message{
+            role: "user".to_string(),
+            content: text
+        }
+    );
+    let request_body = serde_json::json!({
+        "model": "Llama3-70b-8192",
+        "messages": prompt.clone()
+    });
+    prompt.pop();
+    let response = send_groq_api_request(groq_key.clone(), request_body);
+
+    match response.await {
+        Ok(response) => {
+            let _output = Command::new("python3")
+                .arg("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/parsing/google_docs.py")
+                .arg("--write")
+                .arg(response)
+                .output()
+                .expect("Failed to execute command");
+            return Ok(())
+        }
+        Err(e) => {
+            eprintln!("Error occured while sending request to Groq API: {:?}", e);
+            return Err(AppError::Other(e));
+        }
+    }
 }

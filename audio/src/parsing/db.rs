@@ -19,7 +19,7 @@ impl Database {
         conn.execute(
             "CREATE TABLE IF NOT EXISTS audio_text (
                 id TEXT PRIMARY KEY,
-                audio,file TEXT NOT NULL,
+                audio TEXT NOT NULL,
                 RAW TEXT NOT NULL,
                 EMBEDDING BLOB NOT NULL
 
@@ -37,11 +37,11 @@ impl Database {
         )?;
         Ok(conn.last_insert_rowid())
     }
-    pub async fn get(&self) -> Result<Vec<(i64, String, Option<Vec<f32>>) >> { 
+    pub async fn get(&self, audio: &str) -> Result<Vec<(String, String, Option<Vec<f32>>) >> { 
         let conn = self.conn.lock().await;
-        let mut stmt = conn.prepare("SELECT id, RAW, EMBEDDING FROM audio_text")?;
-        let rows = stmt.query_map([], |row|{
-            let id: i64 = row.get(0)?;
+        let mut stmt = conn.prepare("SELECT id, RAW, EMBEDDING FROM audio_text WHERE audio = >")?;
+        let rows = stmt.query_map([audio], |row|{
+            let id: String = row.get(0)?;
             let raw: String = row.get(1)?;
             let embedding_blob: Option<Vec<u8>> = row.get(2)?;
             let embedding = embedding_blob.map(|blob| {

@@ -1,14 +1,17 @@
+// use portaudio::Input;
+use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::fs;
 use std::env;
 use crate::error::AppError;
 mod helper;
-use helper::{split_into_chunks, parse_topics, send_groq_api_request};
+use helper::{split_into_chunks, parse_topics, send_groq_api_request, summarize_raw, summarize_and_send};
 mod prompts;
 use prompts::Message;
 mod db;
 use db::Database;
+use std::io::{self, Write};
 
 
 
@@ -24,6 +27,15 @@ pub struct Sst {
     audio_file: String,
     model_path: String,
     groq_key: String,
+}
+
+
+fn parse_embedding(output: &str) -> Vec<f32> {
+    output
+        .trim_start_matches("embedding 0:")
+        .split_whitespace()
+        .filter_map(|s| f32::from_str(s).ok())
+        .collect()
 }
 
 impl Sst {
@@ -133,55 +145,35 @@ impl Sst {
 
         // go back and search for the name of the transcript file 
         // name of the audio file is found
-
-        let answer = db.check_if_audio_exists(&self.audio_file).await; // check if the audio file exists in the database
+        let sec_key = format!("RAGTAG_{}", &self.audio_file);
+        let answer = db.check_if_audio_exists(&sec_key).await; // check if the audio file exists in the database
 
         match answer {
             Ok(true) => {
                 println!("Audio file already exists in the database. will retrieve the data.");
                 // we can store the data - but then append and then use the data directly
+                let answer = db.get(&sec_key).await?;
             }
             Ok(false) => {
                 println!("Audio file does not exist in the database.");
-                for items in total.clone().into_iter() {
-                    
+                // ./llama-embedding -m ../models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt "Your text here"
+
+                for (index,items) in total.clone().into_iter().enumerate() {
+                    let output = Command::new("sh")
+                        .arg("-c")
+                        .arg(format!("/Users/j-supha/Desktop/Personal_AI/FFMPEG/llama.cpp/llama-embedding -m /Users/j-supha/Desktop/Personal_AI/FFMPEG/models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt '{}'", items))
+                        .output()
+                        .expect("Failed to execute command 1");
+                    let output_str = String::from_utf8_lossy(&output.stdout);
+                    let embedding = parse_embedding(&output_str);
+                    let primary_key = format!("{}_{}", index, &self.audio_file);
+                    let secondary_key = format!("RAGTAG_{}", &self.audio_file);
+                    db.insert(&primary_key, &secondary_key, &items, Some(&embedding)).await?;
+
                 }
             }
             Err(e) => {
                 eprintln!("Error: {}", e);
-            }
-        }
-
-        
-
-        let mut llm = String::new();
-        let mut stored_vec = prompts::MINOR.to_vec(); //summarize via topic setnences
-        for items in total.clone(){
-            stored_vec.push(Message {
-                role: "user".to_string(),
-                content: items,
-            });
-
-            let request_body = serde_json::json!({
-                "model": "Llama3-70b-8192",
-                "messages": stored_vec.clone()
-            });
-            stored_vec.pop();
-
-
-            let final_output = send_groq_api_request(self.groq_key.clone(), request_body);
-
-            match final_output.await {
-                Ok(response_text) => {
-                    // Write the response_text to the file
-                    
-                    // Append the response_text to llm
-                    llm = format!("{}\n\n{}", llm, response_text);
-                }
-                Err(error_message) => {
-                    eprintln!("Error: {}", error_message);
-                    // Handle the error case
-                }
             }
         }
         // so now llm contains a string embedding of the each of the conversations. they have been summarized into segments but nothing has been done
@@ -194,53 +186,6 @@ impl Sst {
 
         // within total before all of this we need to 
 
-        let mut prompt = prompts::ACTION.to_vec();
-        let mut google_output_2 = String::new(); // this is the naive action extraction text file
-        for items in total{
-            prompt.push(Message {
-                role: "user".to_string(),
-                content: items,
-            });
-
-            let request_body = serde_json::json!({
-                "model": "Llama3-70b-8192",
-                "messages": prompt.clone()
-            });
-            prompt.pop();
-            let response = send_groq_api_request(self.groq_key.clone(), request_body);
-
-            match response.await {
-                Ok(response_text) => {
-                    // Write the response_text to the file
-                    
-                    // Append the response_text to llm
-                    google_output_2 = format!("{}\n\n{}", google_output_2, response_text);
-                }
-                Err(error_message) => {
-                    eprintln!("Error: {}", error_message);
-                    // Handle the error case
-                }
-            }
-        }
-
-        let _outputnega = Command::new("python3")
-            .arg("google_docs.py")
-            .arg("--write")
-            .arg(google_output_2)
-            .output()
-            .expect("Failed to execute command 1"); // naive action items google doc write up 
-
-        println!("Rexecuting the code in python"); 
-
-      
-        let _output = Command::new("python3")
-            .arg("google_docs.py")  // Path to the Python script
-            .arg("--write")
-            .arg(llm)               // Argument to pass to the Python script
-            .output()                   // Executes the command as a child process
-            .expect("Failed to execute command 2");
-            // 1HFD4EzZqm_i_AUn3NcbI1Bz8rZNRpENqQuB4oNGmbKY this is the document ID
-
         Ok(())
     }
 
@@ -248,9 +193,27 @@ impl Sst {
     pub async fn process_audio_file(&mut self) -> Result<(), AppError> {
         println!("Processing audio file...");
         let text = self.extract_text_from_audio()?;
-        println!("Extracted text from audio...");
-        self.rag_tag(text).await?;
-        println!("Finished RAG_TAGGING the text...");
-        Ok(())
+        if text.len() < 8000 {
+            return summarize_raw(self.groq_key.clone(), text.clone(), true).await;
+        }else{
+            loop {
+                println!("You can either use RAGTAG or you can use Semantic RAG to use RAGTAG type in R, to use Semantic RAG type in S, to exit type in E");
+                io::stdout().flush().unwrap();
+                let mut command = String::new();
+                io::stdin().read_line(&mut command).unwrap();
+                let command = command.trim();
+                if command == "E" {
+                    break;
+                }
+                if command == "R" {
+                    self.rag_tag(text.clone()).await?;
+                }
+                if command == "S" {
+                    println!("Not yet implemented");
+                    // self.semantic_rag(text).await?;
+                }
+            }
+        }
+        return Ok(());
     }
 }
