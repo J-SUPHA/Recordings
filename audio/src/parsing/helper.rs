@@ -5,13 +5,13 @@ use std::str::FromStr;
 
 // main splitter so that the LLM can handle the text that is coming in
 
-struct embedding_middle {
+struct EmbeddingMiddle {
     text: String,
     embedding: Option<Vec<f32>>,
     distance_to_next: Option<f32>,
 }
 
-impl embedding_middle {
+impl EmbeddingMiddle {
 
     fn new_empty() -> Self {
         Self {
@@ -346,23 +346,23 @@ pub async fn sem_tag_process(
     let mut ninety: Vec<f32> = Vec::new();
 
     let my_vec = split_via_sentences(&text);
-    let mut temp = embedding_middle::new_empty();
-    let mut total: Vec<embedding_middle> = Vec::new();
+    let mut temp = EmbeddingMiddle::new_empty();
+    let mut total: Vec<EmbeddingMiddle> = Vec::new();
     for i in 0..my_vec.len() -1 {
         if temp.text.is_empty() {
             let cur_emb = embeddings(&my_vec[i]).await.expect("Falied to get the embeddings");
             let next_emb = embeddings(&my_vec[i+1]).await.expect("Failed to get the model embeddings");
             let cosine_similarity = cosine_similarity(&cur_emb, &next_emb);
             ninety.push(cosine_similarity.clone());
-            total.push(embedding_middle::new(my_vec[i].clone(), Some(cur_emb),Some(cosine_similarity)));
-            temp = embedding_middle::new_embedding(my_vec[i].clone(), Some(next_emb));
+            total.push(EmbeddingMiddle::new(my_vec[i].clone(), Some(cur_emb),Some(cosine_similarity)));
+            temp = EmbeddingMiddle::new_embedding(my_vec[i].clone(), Some(next_emb));
         }else {
             let next_emb = embeddings(&my_vec[i+1]).await.expect("Failed to get the model embeddings");
             let store = temp.embedding.clone();
             let cosine_similarity = cosine_similarity(&temp.embedding.unwrap(), &next_emb);
             ninety.push(cosine_similarity.clone());
-            total.push(embedding_middle::new(my_vec[i].clone(),store ,Some(cosine_similarity)));
-            temp = embedding_middle::new_embedding(my_vec[i+1].clone(), Some(next_emb));
+            total.push(EmbeddingMiddle::new(my_vec[i].clone(),store ,Some(cosine_similarity)));
+            temp = EmbeddingMiddle::new_embedding(my_vec[i+1].clone(), Some(next_emb));
         }
     }
     let thresh = percentile(ninety, 0.9).expect("Failed to get the 90th percentile");
