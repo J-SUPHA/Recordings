@@ -88,7 +88,7 @@ impl Sst {
 
 
 
-    async fn chunking_tag(&mut self, text: String, RAG_TAG: bool) -> Result<(), AppError> { // must correct the input structure
+    async fn chunking_tag(&mut self, text: String, rag_tag: bool) -> Result<(), AppError> { // must correct the input structure
         // reqwest client to send requests
         let db = Database::new("audio_text.db")?;
         db.init().await?;
@@ -96,7 +96,7 @@ impl Sst {
         // go back and search for the name of the transcript file 
         // name of the audio file is found
 
-        let sec_key = if RAG_TAG {
+        let sec_key = if rag_tag {
             format!("RAGTAG_{}", &self.audio_file)
         } else {
             format!("SEMTAG_{}", &self.audio_file)
@@ -113,26 +113,35 @@ impl Sst {
             }
             Ok(false) => {
                 println!("Audio file does not exist in the database.");
-                // ./llama-embedding -m ../models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt "Your text here"
 
-                
-                let total = if RAG_TAG {
-                    rag_tag_process(self.groq_key.clone(), text.clone()).await?;
-                }else {
-                    sem_tag_process( text.clone()).await?;
-                };
+                if rag_tag {
+                    let total = rag_tag_process(self.groq_key.clone(), text.clone()).await?;
 
-                let mut combined_data: Vec<(String, Option<Vec<f32>>)> = Vec::new();
+                    let mut combined_data: Vec<(String, Option<Vec<f32>>)> = Vec::new();
 
-                for (index,items) in total.into_iter().enumerate() {
-                    let embedding = embeddings(&items).await?;
-                    let primary_key = format!("{}_{}", index, &self.audio_file);
-                    let secondary_key  = format!("RAGTAG_{}", &self.audio_file);
-                    db.insert(&primary_key, &secondary_key, &items, Some(&embedding)).await?;
-                    combined_data.push((items, Some(embedding)));
+                    for (index,items) in total.into_iter().enumerate() {
+                        let embedding = embeddings(&items).await?;
+                        let primary_key = format!("{}_{}", index, &self.audio_file);
+                        let secondary_key  = format!("RAGTAG_{}", &self.audio_file);
+                        db.insert(&primary_key, &secondary_key, &items, Some(&embedding)).await?;
+                        combined_data.push((items, Some(embedding)));
+                    }
+                    chat_or_summarize(combined_data, self.groq_key.clone()).await?;
+                } else {
+
+                    let total = sem_tag_process(text.clone()).await?;
+
+                    let mut combined_data: Vec<(String, Option<Vec<f32>>)> = Vec::new();
+
+                    for (index,items) in total.into_iter().enumerate() {
+                        let embedding = embeddings(&items).await?;
+                        let primary_key = format!("{}_{}", index, &self.audio_file);
+                        let secondary_key  = format!("RAGTAG_{}", &self.audio_file);
+                        db.insert(&primary_key, &secondary_key, &items, Some(&embedding)).await?;
+                        combined_data.push((items, Some(embedding)));
+                    }
+                    chat_or_summarize(combined_data, self.groq_key.clone()).await?;
                 }
-                chat_or_summarize(combined_data, self.groq_key.clone()).await?;
-
             }
             Err(e) => {
                 eprintln!("Error: {}", e);

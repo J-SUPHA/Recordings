@@ -34,22 +34,6 @@ impl EmbeddingMiddle {
             distance_to_next: None,
         }
     }
-    fn new_text(text: String) -> Self {
-        Self {
-            text,
-            embedding: None,
-            distance_to_next: None
-        }
-    }
-    fn insert_next(&mut self, distance_to_next: Option<f32>) {
-        self.distance_to_next = distance_to_next;
-    }
-    fn insert_text(&mut self, text: String) {
-        self.text = text;
-    }
-    fn insert_embedding(&mut self, embedding: Option<Vec<f32>>) {
-        self.embedding = embedding;
-    }
 }
 
 pub fn split_via_sentences(input: &str) -> Vec<String> {
@@ -337,6 +321,7 @@ fn percentile(mut numbers: Vec<f32>, percentile: f32) -> Option<f32> {
     numbers.get(index).cloned()
 }   
 
+
 pub async fn sem_tag_process(
     text: String
 ) -> Result<Vec<String>, AppError> {
@@ -350,8 +335,8 @@ pub async fn sem_tag_process(
     let mut total: Vec<EmbeddingMiddle> = Vec::new();
     for i in 0..my_vec.len() -1 {
         if temp.text.is_empty() {
-            let cur_emb = embeddings(&my_vec[i]).await.expect("Falied to get the embeddings");
-            let next_emb = embeddings(&my_vec[i+1]).await.expect("Failed to get the model embeddings");
+            let cur_emb = embeddings(&my_vec[i]).await.map_err(|e| AppError::Other(e.to_string()))?;
+            let next_emb = embeddings(&my_vec[i+1]).await.map_err(|e| AppError::Other(e.to_string()))?;
             let cosine_similarity = cosine_similarity(&cur_emb, &next_emb);
             ninety.push(cosine_similarity.clone());
             total.push(EmbeddingMiddle::new(my_vec[i].clone(), Some(cur_emb),Some(cosine_similarity)));
