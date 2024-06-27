@@ -5,7 +5,54 @@ use std::str::FromStr;
 
 // main splitter so that the LLM can handle the text that is coming in
 
-pub fn split_via_sentences (input: &str) -> Vec<String> {
+struct embedding_middle {
+    text: String,
+    embedding: Option<Vec<f32>>,
+    distance_to_next: Option<f32>,
+}
+
+impl embedding_middle {
+
+    fn new_empty() -> Self {
+        Self {
+            text: String::new(),
+            embedding: None,
+            distance_to_next: None,
+        }
+    }
+    fn new(text: String, embedding: Option<Vec<f32>>,distance_to_next: Option<f32>) -> Self {
+        Self {
+            text,
+            embedding,
+            distance_to_next,
+        }
+    }
+    fn new_embedding(text: String, embedding: Option<Vec<f32>>) -> Self {
+        Self {
+            text,
+            embedding,
+            distance_to_next: None,
+        }
+    }
+    fn new_text(text: String) -> Self {
+        Self {
+            text,
+            embedding: None,
+            distance_to_next: None
+        }
+    }
+    fn insert_next(&mut self, distance_to_next: Option<f32>) {
+        self.distance_to_next = distance_to_next;
+    }
+    fn insert_text(&mut self, text: String) {
+        self.text = text;
+    }
+    fn insert_embedding(&mut self, embedding: Option<Vec<f32>>) {
+        self.embedding = embedding;
+    }
+}
+
+pub fn split_via_sentences(input: &str) -> Vec<String> {
     println!("Splitting the text appropriately...");
     let mut sentences: Vec<String> = Vec::new();
     let mut temp_buf = String::new();
@@ -13,9 +60,6 @@ pub fn split_via_sentences (input: &str) -> Vec<String> {
     let mut prev = "".to_string();
     let mut current = "".to_string();
     let mut post = "".to_string();
-    println!("This is the input {:?}", prev);
-    println!("This is the input {:?}", current);
-    println!("This is the input {:?}", post);
 
     while i < input.len() {
         match input.as_bytes()[i] {
@@ -285,15 +329,52 @@ pub async fn embeddings(text: &String) -> Result<Vec<f32>, AppError> {
     return Ok(embeddings);
 }
 
+fn percentile(mut numbers: Vec<f32>, percentile: f32) -> Option<f32> {
 
+    numbers.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    
+    let index = (numbers.len() as f32 * percentile).floor() as usize;
+    numbers.get(index).cloned()
+}   
 
 pub async fn sem_tag_process(
-    groq_key: String,
     text: String
 ) -> Result<Vec<String>, AppError> {
 
+    let mut return_vec: Vec<String> = Vec::new();
+
+    let mut ninety: Vec<f32> = Vec::new();
+
     let my_vec = split_via_sentences(&text);
-    return Ok(my_vec);
+    let mut temp = embedding_middle::new_empty();
+    let mut total: Vec<embedding_middle> = Vec::new();
+    for i in 0..my_vec.len() -1 {
+        if temp.text.is_empty() {
+            let cur_emb = embeddings(&my_vec[i]).await.expect("Falied to get the embeddings");
+            let next_emb = embeddings(&my_vec[i+1]).await.expect("Failed to get the model embeddings");
+            let cosine_similarity = cosine_similarity(&cur_emb, &next_emb);
+            ninety.push(cosine_similarity.clone());
+            total.push(embedding_middle::new(my_vec[i].clone(), Some(cur_emb),Some(cosine_similarity)));
+            temp = embedding_middle::new_embedding(my_vec[i].clone(), Some(next_emb));
+        }else {
+            let next_emb = embeddings(&my_vec[i+1]).await.expect("Failed to get the model embeddings");
+            let store = temp.embedding.clone();
+            let cosine_similarity = cosine_similarity(&temp.embedding.unwrap(), &next_emb);
+            ninety.push(cosine_similarity.clone());
+            total.push(embedding_middle::new(my_vec[i].clone(),store ,Some(cosine_similarity)));
+            temp = embedding_middle::new_embedding(my_vec[i+1].clone(), Some(next_emb));
+        }
+    }
+    let thresh = percentile(ninety, 0.9).expect("Failed to get the 90th percentile");
+    let mut str_buf = String::new();
+    for items in total {
+        if items.distance_to_next.unwrap() < thresh {
+            return_vec.push(str_buf.clone());
+            str_buf.clear();
+        }
+        str_buf.push_str(&items.text);
+    }
+    return Ok(return_vec);
 
 }
 

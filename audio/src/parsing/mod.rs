@@ -6,7 +6,7 @@ use std::fs;
 use std::env;
 use crate::error::AppError;
 mod helper;
-use helper::{summarize_raw, rag_tag_process, chat_or_summarize, embeddings};
+use helper::{summarize_raw, rag_tag_process, chat_or_summarize, embeddings, sem_tag_process};
 mod prompts;
 use prompts::Message;
 mod db;
@@ -115,9 +115,12 @@ impl Sst {
                 println!("Audio file does not exist in the database.");
                 // ./llama-embedding -m ../models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt "Your text here"
 
-
                 
-                let total = rag_tag_process(self.groq_key.clone(), text.clone()).await?;
+                let total = if RAG_TAG {
+                    rag_tag_process(self.groq_key.clone(), text.clone()).await?;
+                }else {
+                    sem_tag_process( text.clone()).await?;
+                };
 
                 let mut combined_data: Vec<(String, Option<Vec<f32>>)> = Vec::new();
 
