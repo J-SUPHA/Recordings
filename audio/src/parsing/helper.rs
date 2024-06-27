@@ -4,6 +4,52 @@ use std::process::Command;
 use std::str::FromStr;
 
 // main splitter so that the LLM can handle the text that is coming in
+
+pub fn split_via_sentences (input: &str) -> Vec<String> {
+    println!("Splitting the text appropriately...");
+    let mut sentences: Vec<String> = Vec::new();
+    let mut temp_buf = String::new();
+    let mut i = 0;
+    let mut prev = "".to_string();
+    let mut current = "".to_string();
+    let mut post = "".to_string();
+    println!("This is the input {:?}", prev);
+    println!("This is the input {:?}", current);
+    println!("This is the input {:?}", post);
+
+    while i < input.len() {
+        match input.as_bytes()[i] {
+            b'.' | b'?' | b'!' | b'\n'  => {
+                if prev=="" && current=="" && post==""{
+                    temp_buf.push(input.as_bytes()[i] as char);
+                    post = temp_buf.clone();
+                    temp_buf.clear();
+                } else if prev == "" && current == "" {
+                    temp_buf.push(input.as_bytes()[i] as char);
+                    current = post.clone();
+                    post = temp_buf.clone();
+                    temp_buf.clear();
+                    sentences.push(format!("{}{}", current, post));
+                } else if prev == "" {
+                    temp_buf.push(input.as_bytes()[i] as char);
+                    prev = current.clone();
+                    current = post.clone();
+                    post = temp_buf.clone();
+                    temp_buf.clear();
+                    sentences.push(format!("{}{}{}", prev, current, post));
+                }
+            }
+            _ => {
+                temp_buf.push(input.as_bytes()[i] as char);
+            }
+        }
+        i += 1;
+    }
+    sentences.push(format!("{}{}", current, post));
+    return sentences;
+}
+
+
 pub fn split_into_chunks(input: &str, chunk_size: usize) -> Vec<String> {
     println!("Splitting the text appropriately...");
     let chunks: Vec<String> = input
@@ -237,6 +283,18 @@ pub async fn embeddings(text: &String) -> Result<Vec<f32>, AppError> {
     let output = String::from_utf8_lossy(&output.stdout);
     let embeddings = parse_embedding(&output);
     return Ok(embeddings);
+}
+
+
+
+pub async fn sem_tag_process(
+    groq_key: String,
+    text: String
+) -> Result<Vec<String>, AppError> {
+
+    let my_vec = split_via_sentences(&text);
+    return Ok(my_vec);
+
 }
 
 

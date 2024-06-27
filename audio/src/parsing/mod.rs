@@ -85,14 +85,23 @@ impl Sst {
     // }
 
     // Method to send extracted text to API and handle response
-    async fn rag_tag(&mut self, text: String) -> Result<(), AppError> { // must correct the input structure
+
+
+
+    async fn chunking_tag(&mut self, text: String, RAG_TAG: bool) -> Result<(), AppError> { // must correct the input structure
         // reqwest client to send requests
         let db = Database::new("audio_text.db")?;
         db.init().await?;
 
         // go back and search for the name of the transcript file 
         // name of the audio file is found
-        let sec_key = format!("RAGTAG_{}", &self.audio_file);
+
+        let sec_key = if RAG_TAG {
+            format!("RAGTAG_{}", &self.audio_file)
+        } else {
+            format!("SEMTAG_{}", &self.audio_file)
+        };
+
         let answer = db.check_if_audio_exists(&sec_key).await; // check if the audio file exists in the database
 
         match answer {
@@ -105,6 +114,9 @@ impl Sst {
             Ok(false) => {
                 println!("Audio file does not exist in the database.");
                 // ./llama-embedding -m ../models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt "Your text here"
+
+
+                
                 let total = rag_tag_process(self.groq_key.clone(), text.clone()).await?;
 
                 let mut combined_data: Vec<(String, Option<Vec<f32>>)> = Vec::new();
@@ -123,15 +135,7 @@ impl Sst {
                 eprintln!("Error: {}", e);
             }
         }
-        // so now llm contains a string embedding of the each of the conversations. they have been summarized into segments but nothing has been done
-        // the only thing that has been done is that they have been separated into topics and summarized
-        // in the current scope of work at least for this cycle we are going to implement the following steps
-        // 1 . naive - write the summarized output straight into a google doc - this has already been done with _output
-        // 2. add another parsing step to the raw chunk ask the llm to extract any and all action items and then write those down into a google doc
-        // 3. add a databse integration with rag and allow a user to chat directly with the meeting notes
-        // 4  add optionality so that the user can choose exactly what they want to do with all this information
 
-        // within total before all of this we need to 
 
         Ok(())
     }
@@ -153,7 +157,7 @@ impl Sst {
                     break;
                 }
                 if command == "R" {
-                    self.rag_tag(text.clone()).await?;
+                    self.chunking_tag(text.clone(), true).await?;
                 }
                 if command == "S" {
                     println!("Not yet implemented");
