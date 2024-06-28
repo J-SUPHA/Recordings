@@ -1,6 +1,6 @@
 import os.path
 import argparse
-
+import os
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -11,7 +11,7 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/documents"]
 
 # The ID of a sample document.
-DOCUMENT_ID = "17JAkkmfStc6An0UakQdbMkTNZ2PofUa4y4vbs8SOsOw"
+DOCUMENT_ID = os.environ.get("DOCUMENT_ID")
 
 
 def main(text):

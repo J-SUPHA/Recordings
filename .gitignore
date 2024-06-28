@@ -2,3 +2,4 @@
 whisper.cpp
 pyaudio
 audio/target
+*/target/*

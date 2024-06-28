@@ -158,7 +158,7 @@ pub async fn send_groq_api_request(
     let mut retry_attempt = 0;
 
     while retry_attempt < retry_count {
-        println!("This is the api key {:?}", groq_key.clone());
+        println!("Another call");
         let response_result = client
             .post("https://api.groq.com/openai/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", groq_key.clone()))
@@ -426,6 +426,7 @@ async fn chat(groq_key: String,input: Vec<(String, Option<Vec<f32>>)>) -> Result
                 let vector = embeddings(&my_choice);
                 match vector.await {
                     Ok(vector) => {
+                        println!("The first problem {:?}", input[0]);
                         let mut similarities: Vec<(f32, &String)> = input.iter()
                             .filter_map(|(text, embedding)| {
                                 embedding.as_ref().map(|emb| {

@@ -172,8 +172,7 @@ impl Sst {
                     self.chunking_tag(text.clone(), true).await?;
                 }
                 if command == "S" {
-                    println!("Not yet implemented");
-                    // self.semantic_rag(text).await?;
+                    self.chunking_tag(text.clone(), false).await?;
                 }
             }
         }
