@@ -58,7 +58,7 @@ impl Database {
     }
     pub async fn check_if_audio_exists(&self, id: &str) -> Result<bool> {
         let conn = self.conn.lock().await;
-        let mut stmt = conn.prepare("SELECT COUNT(*) FROM audio_text WHERE id = ?1")?;
+        let mut stmt = conn.prepare("SELECT COUNT(*) FROM audio_text WHERE audio = ?1")?;
         let count: i64 = stmt.query_row(params![id], |row| row.get(0))?;
         Ok(count > 0)
     }

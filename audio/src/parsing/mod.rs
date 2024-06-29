@@ -46,8 +46,6 @@ impl Sst {
 
         let output_txt = format!("{}.txt", self.audio_file);
 
-        println!("Extracting text from audio file...");
-
         let command = format!("/Users/j-supha/Desktop/Personal_AI/FFMPEG/whisper.cpp/main --model {} --output-txt {} {}", self.model_path, output_txt, self.audio_file);
 
         println!("This is my model path: {}", self.model_path);
@@ -59,17 +57,14 @@ impl Sst {
             .arg(&command)
             .output()?;
 
-        println!("Passed 1");
 
         if !output.stdout.is_empty() {
             println!("{}", String::from_utf8_lossy(&output.stdout));
         }
-        println!("Passed 2");
 
         if !output.stderr.is_empty() {
             eprintln!("{}", String::from_utf8_lossy(&output.stderr));
         }
-        println!("Passed 3");
 
         // Read the output from the text file
         let text = fs::read_to_string(output_txt)?;
