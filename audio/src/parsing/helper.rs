@@ -411,7 +411,7 @@ fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     return dot_product / (norm_a * norm_b);
 }
 
-async fn chat(groq_key: String,input: Vec<(String, Option<Vec<f32>>)>) -> Result<(), AppError> {
+async fn chat(groq_key: String, input: Vec<(String, Option<Vec<f32>>)>) -> Result<(), AppError> {
     loop {
         println!("Ask a question based on the transcript or enter exit to leave");
         let mut choice = String::new();
@@ -427,7 +427,7 @@ async fn chat(groq_key: String,input: Vec<(String, Option<Vec<f32>>)>) -> Result
                 match vector.await {
                     Ok(vector) => {
                         println!("The first problem {:?}", input[0]);
-                        let mut similarities: Vec<(f32, &String)> = input.iter()
+                        let similarities: Vec<(f32, &String)> = input.iter()
                             .filter_map(|(text, embedding)| {
                                 embedding.as_ref().map(|emb| {
                                     let similarity = cosine_similarity(&vector, emb);
@@ -435,13 +435,22 @@ async fn chat(groq_key: String,input: Vec<(String, Option<Vec<f32>>)>) -> Result
                                 })
                             })
                             .collect();
+                        println!("The similarities {:?}", similarities);
+                        let mut valid_similarities: Vec<_> = similarities
+                            .into_iter()
+                            .filter(|(score, _)| !score.is_nan())
+                            .collect();
 
-                        similarities.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+                        valid_similarities.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
                         let mut prompt = prompts::CHAT.to_vec();
+
+                        println!("The valid similarities {:?}", valid_similarities);
+                        println!("Valid similarities {:?}", valid_similarities.len());
+                        println!("The first problem {:?}", valid_similarities[0]);
                         prompt.push(
                             prompts::Message{
                                 role: "user".to_string(),
-                                content: format!("{}\n{}\n{}\n{}", similarities[0].1, similarities[1].1, similarities[2].1, my_choice)
+                                content: format!("{}\n{}\n{}\n{}", valid_similarities[0].1, valid_similarities[1].1, valid_similarities[2].1, my_choice)
                             }
                         );
                         let request_body = serde_json::json!({
@@ -452,7 +461,7 @@ async fn chat(groq_key: String,input: Vec<(String, Option<Vec<f32>>)>) -> Result
 
                         match response.await {
                             Ok(response) => {
-                                println!("{}", response);
+                                println!("Here is the reponse that was given {}", response);
                             }
                             Err(e) => {
                                 eprintln!("Error occured while sending request to Groq API: {:?}", e);
@@ -480,6 +489,7 @@ pub async fn chat_or_summarize(input: Vec<(String,Option<Vec<f32>>)>, groq_key: 
         let mut choice = String::new();
         std::io::stdin().read_line(&mut choice).unwrap();
         let choice = choice.trim();
+        let mut bool = false;
         match choice {
             "1" => {
                 summarize_and_send(groq_key.clone(), &input.iter().map(|(x,_)| x.clone()).collect(), false).await?;
@@ -490,11 +500,18 @@ pub async fn chat_or_summarize(input: Vec<(String,Option<Vec<f32>>)>, groq_key: 
             "3" => {
                 chat(groq_key.clone(), input.clone()).await?;
             }
+            "4" => {
+                bool = true;
+            }
             _ => {
                 println!("Invalid choice");
             }
         }
+        if bool {
+            break;
+        }
 
     }
+    Ok(())
     
 }
