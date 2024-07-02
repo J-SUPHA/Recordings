@@ -188,6 +188,7 @@ impl Sst {
         }
         let mut file = File::open(&self.audio_file)
         .map_err(|e| AppError::Other(format!("Failed to open file: {}", e)))?;
+    
 
         // Read the contents of the file into a String
         let mut text = String::new();

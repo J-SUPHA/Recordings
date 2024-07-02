@@ -60,7 +60,7 @@ def main(text):
         ],
       },
     ).execute()
-
+    print("Text successfully written to the document the text is: ", text)
     print(f"The title of the document is: {document.get('title')}")
   except HttpError as err:
     print(err)

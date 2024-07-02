@@ -255,12 +255,16 @@ pub async fn summarize_and_send(
             }
         }
     }
-    let _output = Command::new("python3")
-        .arg("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/parsing/google_docs.py")
+    println!("{:?} this is the google output ",google_output);
+    let output = Command::new("python3")
+        .arg("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/google_docs.py")
         .arg("--write")
         .arg(google_output)
         .output()
         .expect("Failed to execute command");
+    println!("Status {}", output.status);
+    println!("Output {}", String::from_utf8_lossy(&output.stdout));
+    println!("Error {}", String::from_utf8_lossy(&output.stderr));
     return Ok(())
 
     // 1HFD4EzZqm_i_AUn3NcbI1Bz8rZNRpENqQuB4oNGmbKY this is the document ID
@@ -285,16 +289,21 @@ pub async fn summarize_raw(groq_key: String, text: String, action: bool) -> Resu
         "messages": prompt.clone()
     });
     prompt.pop();
+    println!("This is the request body {:?}", request_body);
     let response = send_groq_api_request(groq_key.clone(), request_body);
 
     match response.await {
         Ok(response) => {
-            let _output = Command::new("python3")
-                .arg("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/parsing/google_docs.py")
+            println!("This is my response {:?}", response);
+            let output = Command::new("python3")
+                .arg("/Users/j-supha/Desktop/Personal_AI/FFMPEG/audio/src/parsing/google_docs.py")
                 .arg("--write")
                 .arg(response)
                 .output()
                 .expect("Failed to execute command");
+            println!("Status: {}", output.status);
+            println!("Output: {}", String::from_utf8_lossy(&output.stdout));
+            println!("Error: {}", String::from_utf8_lossy(&output.stderr));
             return Ok(())
         }
         Err(e) => {
