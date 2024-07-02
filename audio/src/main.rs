@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::io::{self, Write};
 
 
-use std::path::Path;
+use std::path::{self, Path};
 
 extern crate reqwest;
 
@@ -29,7 +29,7 @@ impl Control {
 
     async fn control(&mut self) -> Result<(), AppError>{
         loop {
-            println!("full for the full pipeline, audio to process a wav file, and exit to exit:");
+            println!("full for the full pipeline, audio to process a wav file, txt to process a text file ,and exit to exit:");
             io::stdout().flush().unwrap();
             let mut command = String::new();
             io::stdin().read_line(&mut command).unwrap();
@@ -40,6 +40,9 @@ impl Control {
                 }
                 "audio" => {
                     let _ = self.text_file().await;
+                }
+                "txt" => {
+                    let _ = self.txt().await;
                 }
                 "exit" => {
                     println!("Exiting...");
@@ -146,6 +149,33 @@ impl Control {
         }
         Ok(())
     }
+    async fn txt(&mut self) -> Result<(), AppError> {
+        loop {
+            println!("Type the path to the wav file that you want to change. If the wav file is not found you will be asked to type it again. Type exit to exit:");
+            io::stdout().flush().unwrap();
+            let mut command = String::new();
+            io::stdin().read_line(&mut command).unwrap();
+            let command = command.trim();
+            if command == "exit" {
+                break;
+            }
+            if !command.ends_with(".txt") {
+                println!("Invalid file type. Please enter a .txt file");
+                continue;
+            }
+            let path = Path::new(command);
+            if !path.exists() {
+                println!("File not found. Please enter a valid path");
+                continue;
+            }
+            println!("File found. Processing text file {:?}", command);
+            let mut sst = Sst::new(command.to_string(), "/Users/j-supha/Desktop/Personal_AI/FFMPEG/whisper.cpp/models/ggml-base.en.bin".to_string());
+            sst.process_text_file().await.map_err(|e| AppError::Other(e.to_string()))?;
+            break;
+        }
+        Ok(())
+    }
+
 }
 
 

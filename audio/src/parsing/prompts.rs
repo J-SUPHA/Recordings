@@ -710,7 +710,7 @@ lazy_static! {
             content: "So far within the Grugsite I have done a basic mockup in handlebars of the frontend although I still need to cleanup it up and align it properly. I have built the integration between discord and the website that allows nous memeber to post whatever they want to the site. I have also built a categories system that I probably need to clean up a well. Now I need to deploy the site to google cloud, obtain the domain name and test it with John Galt".to_string()
         },
         Message {
-            role: "assitant".to_string(),
+            role: "assistant".to_string(),
             content: "Summary of Grugsite topic\n The builder of the Grugsite needs to cleanup the frontend \n the builder of the website needs to clean up the categories system \n the builder needs to deploy the site to google cloud obtain the domain name and test the site with John Galt".to_string()
         },
         Message {

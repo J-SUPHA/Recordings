@@ -30,11 +30,11 @@ def main(text):
       creds.refresh(Request())
     else:
       flow = InstalledAppFlow.from_client_secrets_file(
-          "/Users/j-supha/Desktop/secure_1.json", SCOPES
+          "/Users/j-supha/Desktop/Google_Crap/secure_1.json", SCOPES
       )
       creds = flow.run_local_server(port=0)
     # Save the credentials for the next run
-    with open("/Users/j-supha/Desktop/secure.json", "w") as token:
+    with open("/Users/j-supha/Desktop/Google_Crap/secure.json", "w") as token:
       token.write(creds.to_json())
 
   try:

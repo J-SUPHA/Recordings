@@ -156,7 +156,7 @@ pub async fn send_groq_api_request(
     let timeout = Duration::from_secs(30);
     let retry_count = 3;
     let mut retry_attempt = 0;
-
+    println!("This is the request body {:?}", request_body);
     while retry_attempt < retry_count {
         println!("Another call");
         let response_result = client
@@ -169,6 +169,7 @@ pub async fn send_groq_api_request(
 
         match response_result {
             Ok(response) => {
+                println!("The response is {:?}", response);
                 match response.status() {
                     StatusCode::OK => {
 
@@ -178,9 +179,11 @@ pub async fn send_groq_api_request(
                             .as_str()
                             .ok_or_else(|| "Falied to extract content from JSON".to_string())?
                             .to_string();
+                        println!("The error originated here");
                         return Ok(content);
                     }
                     StatusCode::TOO_MANY_REQUESTS => {
+           
                         println!("Too many requests. Retrying...");
                         retry_attempt += 1;
                         if retry_attempt < retry_count {
@@ -191,6 +194,7 @@ pub async fn send_groq_api_request(
                         }
                     }
                     _=> {
+                        println!("Something else is going on here");
                         let error_message = format!(
                             "Unexpected response status: {}",
                             response.status()
@@ -200,7 +204,7 @@ pub async fn send_groq_api_request(
                 }
             }
             Err(error) => {
-                eprintln!("Error occured while sending request to Groq API: {:?}", error);
+                eprintln!("line 203: There way no status when send to the Groq API for sime reason: {:?}", error);
                 retry_attempt+=1;
                 if retry_attempt < retry_count {
                     return Err(format!("Failed to send request after {} retries", retry_attempt));
@@ -246,7 +250,7 @@ pub async fn summarize_and_send(
                 google_output.push_str(&response);
             }
             Err(e) => {
-                eprintln!("Error occured while sending request to Groq API: {:?}", e);
+                eprintln!("Line 249: Error occured while sending request to Groq API: {:?} the actual response was",e);
                 return Err(AppError::Other(e));
             }
         }
@@ -294,7 +298,7 @@ pub async fn summarize_raw(groq_key: String, text: String, action: bool) -> Resu
             return Ok(())
         }
         Err(e) => {
-            eprintln!("Error occured while sending request to Groq API: {:?}", e);
+            eprintln!("Error occurred while trying to run google_doc.py: {:?}", e);
             return Err(AppError::Other(e));
         }
     }
@@ -395,7 +399,7 @@ pub async fn rag_tag_process(
                 unfinished = unfinished_text;
             }
             Err(e) => {
-                eprintln!("Error occured while sending request to Groq API: {:?}", e);
+                eprintln!("Line 398: Error occured while sending request to Groq API: {:?}", e);
                 return Err(AppError::Other(e));
             }
         }
@@ -464,13 +468,13 @@ async fn chat(groq_key: String, input: Vec<(String, Option<Vec<f32>>)>) -> Resul
                                 println!("Here is the reponse that was given {}", response);
                             }
                             Err(e) => {
-                                eprintln!("Error occured while sending request to Groq API: {:?}", e);
+                                eprintln!("Line 467: Error occured while sending request to Groq API: {:?}", e);
                                 return Err(AppError::Other(e.to_string()));
                             }
                         }
                     }
                     Err(e) => {
-                        eprintln!("Error occured while sending request to Groq API: {:?}", e);
+                        eprintln!("Error occured fetching the vector: {:?}", e);
                         return Err(AppError::Other(e.to_string()));
                     }
                 }

@@ -12,6 +12,9 @@ use prompts::Message;
 mod db;
 use db::Database;
 use std::io::{self, Write};
+use std::path::Path;
+use std::fs::File;
+use std::io::Read;
 
 
 
@@ -27,6 +30,10 @@ pub struct Sst {
     audio_file: String,
     model_path: String,
     groq_key: String,
+}
+
+fn extract_file_name(file_path: &str) -> Option<String> {
+    Path::new(file_path).file_name().and_then(|name| name.to_str()).map(String::from)
 }
 
 
@@ -91,10 +98,12 @@ impl Sst {
         // go back and search for the name of the transcript file 
         // name of the audio file is found
 
+        let audio_file = extract_file_name(&self.audio_file).unwrap();
+
         let sec_key = if rag_tag {
-            format!("RAGTAG_{}", &self.audio_file)
+            format!("RAGTAG_{}", audio_file)
         } else {
-            format!("SEMTAG_{}", &self.audio_file)
+            format!("SEMTAG_{}", audio_file)
         };
 
         let answer = db.check_if_audio_exists(&sec_key).await; // check if the audio file exists in the database
@@ -142,8 +151,6 @@ impl Sst {
                 eprintln!("Error: {}", e);
             }
         }
-
-
         Ok(())
     }
 
@@ -173,4 +180,40 @@ impl Sst {
         }
         return Ok(());
     }
+
+    pub async fn process_text_file(&mut self) -> Result<(), AppError> {
+
+        if !self.audio_file.ends_with(".txt") {
+            return Err(AppError::Other("Invalid file type. Please enter a .txt file".to_string()));
+        }
+        let mut file = File::open(&self.audio_file)
+        .map_err(|e| AppError::Other(format!("Failed to open file: {}", e)))?;
+
+        // Read the contents of the file into a String
+        let mut text = String::new();
+        file.read_to_string(&mut text)
+            .map_err(|e| AppError::Other(format!("Failed to read file: {}", e)))?;
+        if text.len() < 8000 {
+            return summarize_raw(self.groq_key.clone(), text.clone(), true).await;
+        }else{
+            loop {
+                println!("You can either use RAGTAG or you can use Semantic RAG to use RAGTAG type in R, to use Semantic RAG type in S, to exit type in E");
+                io::stdout().flush().unwrap();
+                let mut command = String::new();
+                io::stdin().read_line(&mut command).unwrap();
+                let command = command.trim();
+                if command == "E" {
+                    break;
+                }
+                if command == "R" {
+                    self.chunking_tag(text.clone(), true).await?;
+                }
+                if command == "S" {
+                    self.chunking_tag(text.clone(), false).await?;
+                }
+            }
+        }
+        Ok(())
+    }
+        
 }
