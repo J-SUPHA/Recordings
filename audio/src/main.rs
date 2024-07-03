@@ -29,7 +29,7 @@ impl Control {
 
     async fn control(&mut self) -> Result<(), AppError>{
         loop {
-            println!("full for the full pipeline, audio to process a wav file, txt to process a text file ,and exit to exit:");
+            println!("full for the full pipeline, audio to process a wav file, txt to process a text file and exit to exit:");
             io::stdout().flush().unwrap();
             let mut command = String::new();
             io::stdin().read_line(&mut command).unwrap();
@@ -151,7 +151,7 @@ impl Control {
     }
     async fn txt(&mut self) -> Result<(), AppError> {
         loop {
-            println!("Type the path to the wav file that you want to change. If the wav file is not found you will be asked to type it again. Type exit to exit:");
+            println!("Type the path to the text file that you want to change. If the text file is not found you will be asked to type it again. Type exit to exit:");
             io::stdout().flush().unwrap();
             let mut command = String::new();
             io::stdin().read_line(&mut command).unwrap();

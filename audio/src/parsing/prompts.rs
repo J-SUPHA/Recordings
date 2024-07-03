@@ -700,10 +700,10 @@ lazy_static! {
 }
 
 lazy_static! {
-    pub static ref ACTION: [Message; 5] = [
+    pub static ref ACTION: [Message; 3] = [
         Message {
             role: "system".to_string(),
-            content: "You are viewing snippets of a meeting. Your job is to extract any action items. An action item is something that needs to be done after the meeting. The following snippet may not have have any action items. But if the snippet does have action items please list them. If there are no action items from the input simply output the word none please".to_string()
+            content: "You are viewing snippets of a meeting. Your job is to extract any action items. An action item is something that needs to be done or focused on after the meeting. The following snippet may not have have any action items. But if the snippet does have action items please list them.".to_string()
         }, 
         Message {
             role: "user".to_string(),
@@ -712,14 +712,6 @@ lazy_static! {
         Message {
             role: "assistant".to_string(),
             content: "Summary of Grugsite topic\n The builder of the Grugsite needs to cleanup the frontend \n the builder of the website needs to clean up the categories system \n the builder needs to deploy the site to google cloud obtain the domain name and test the site with John Galt".to_string()
-        },
-        Message {
-            role: "user".to_string(),
-            content: "Over the weekend I wen tot gym and took the dog out for a walk. We played fetch - that so cute - yeah hes just a puppy. he's still learning how to fetch the dog will chase after the ball and just sit with the ball and not do anything with it. He is so silly".to_string()
-        },
-        Message {
-            role: "assistant".to_string(),
-            content: "None".to_string()
         }
     ];
 }

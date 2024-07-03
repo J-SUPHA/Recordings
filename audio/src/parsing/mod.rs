@@ -81,15 +81,6 @@ impl Sst {
         Ok(text)
     }
 
-
-    // async fn semantic_rag(&mut self text: String) -> Result<(), AppError> {
-
-    // }
-
-    // Method to send extracted text to API and handle response
-
-
-
     async fn chunking_tag(&mut self, text: String, rag_tag: bool) -> Result<(), AppError> { // must correct the input structure
         // reqwest client to send requests
         let db = Database::new("audio_text.db")?;
@@ -140,7 +131,7 @@ impl Sst {
                     for (index,items) in total.into_iter().enumerate() {
                         let embedding = embeddings(&items).await?;
                         let primary_key = format!("{}_{}", index, &self.audio_file);
-                        let secondary_key  = format!("RAGTAG_{}", &self.audio_file);
+                        let secondary_key  = format!("SEMTAG_{}", &self.audio_file);
                         db.insert(&primary_key, &secondary_key, &items, Some(&embedding)).await?;
                         combined_data.push((items, Some(embedding)));
                     }
@@ -188,7 +179,7 @@ impl Sst {
         }
         let mut file = File::open(&self.audio_file)
         .map_err(|e| AppError::Other(format!("Failed to open file: {}", e)))?;
-    
+
 
         // Read the contents of the file into a String
         let mut text = String::new();

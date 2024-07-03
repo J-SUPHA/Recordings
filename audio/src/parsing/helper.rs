@@ -2,6 +2,7 @@ use super::prompts;
 use crate::AppError;
 use std::process::Command;
 use std::str::FromStr;
+use std::collections::VecDeque;
 
 // main splitter so that the LLM can handle the text that is coming in
 
@@ -37,44 +38,35 @@ impl EmbeddingMiddle {
 }
 
 pub fn split_via_sentences(input: &str) -> Vec<String> {
-    println!("Splitting the text appropriately...");
-    let mut sentences: Vec<String> = Vec::new();
-    let mut temp_buf = String::new();
-    let mut i = 0;
-    let mut prev = "".to_string();
-    let mut current = "".to_string();
-    let mut post = "".to_string();
+    let mut queue: VecDeque<String> = VecDeque::new();
+    let mut total: Vec<String> = Vec::new();
 
-    while i < input.len() {
-        match input.as_bytes()[i] {
-            b'.' | b'?' | b'!' | b'\n'  => {
-                if prev=="" && current=="" && post==""{
-                    temp_buf.push(input.as_bytes()[i] as char);
-                    post = temp_buf.clone();
-                    temp_buf.clear();
-                } else if prev == "" && current == "" {
-                    temp_buf.push(input.as_bytes()[i] as char);
-                    current = post.clone();
-                    post = temp_buf.clone();
-                    temp_buf.clear();
-                    sentences.push(format!("{}{}", current, post));
-                } else if prev == "" {
-                    temp_buf.push(input.as_bytes()[i] as char);
-                    prev = current.clone();
-                    current = post.clone();
-                    post = temp_buf.clone();
-                    temp_buf.clear();
-                    sentences.push(format!("{}{}{}", prev, current, post));
-                }
-            }
-            _ => {
-                temp_buf.push(input.as_bytes()[i] as char);
+    let mut temp = String::new();
+    for c in input.chars() {
+        temp.push(c);
+        if c == '.' {
+            if queue.len() == 3 {
+                let _front = queue.pop_front();
+                queue.push_back(temp.clone());
+                temp.clear();
+                let joined_string = queue.iter().map(|s| s.clone()).collect::<Vec<String>>().join(" ");
+                total.push(joined_string);
+            }else{
+                queue.push_back(temp.clone());
+                temp.clear();
+                let joined_string = queue.iter().map(|s| s.clone()).collect::<Vec<String>>().join(" ");
+                total.push(joined_string);
             }
         }
-        i += 1;
     }
-    sentences.push(format!("{}{}", current, post));
-    return sentences;
+    while !queue.is_empty() {
+        let _front = queue.pop_front();
+        let joined_string = queue.iter().map(|s| s.clone()).collect::<Vec<String>>().join(" ");
+        total.push(joined_string);
+    }
+    println!("Here is my total semntence {:?}", total.len());
+    return total;
+    
 }
 
 
@@ -342,8 +334,9 @@ pub async fn sem_tag_process(
     let mut return_vec: Vec<String> = Vec::new();
 
     let mut ninety: Vec<f32> = Vec::new();
-
+    println!("The text is {:?}", text);
     let my_vec = split_via_sentences(&text);
+    println!("The length of the vector is {:?}", my_vec.len());
     let mut temp = EmbeddingMiddle::new_empty();
     let mut total: Vec<EmbeddingMiddle> = Vec::new();
     for i in 0..my_vec.len() -1 {
@@ -364,6 +357,7 @@ pub async fn sem_tag_process(
         }
     }
     let thresh = percentile(ninety, 0.9).expect("Failed to get the 90th percentile");
+    println!("The threshold is {:?}", thresh);
     let mut str_buf = String::new();
     for items in total {
         if items.distance_to_next.unwrap() < thresh {
