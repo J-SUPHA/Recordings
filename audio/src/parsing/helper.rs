@@ -37,6 +37,22 @@ impl EmbeddingMiddle {
     }
 }
 
+use std::fs::OpenOptions;
+use std::io::Write;
+
+fn write_error_to_file(error: &str) -> std::io::Result<()> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open("error_log.txt")?;
+
+    writeln!(file, "Error: {:?}", error)?;
+
+    Ok(())
+}
+
+
 pub fn split_via_sentences(input: &str) -> Vec<String> {
     let mut queue: VecDeque<String> = VecDeque::new();
     let mut total: Vec<String> = Vec::new();
@@ -64,7 +80,7 @@ pub fn split_via_sentences(input: &str) -> Vec<String> {
         let joined_string = queue.iter().map(|s| s.clone()).collect::<Vec<String>>().join(" ");
         total.push(joined_string);
     }
-    println!("Here is my total semntence {:?}", total.len());
+    println!("Here is my total sentence {:?}", total.len());
     return total;
     
 }
@@ -307,15 +323,24 @@ pub async fn summarize_raw(groq_key: String, text: String, action: bool) -> Resu
 
 
 pub async fn embeddings(text: &String) -> Result<Vec<f32>, AppError> {
+    let command = format!(
+        "/Users/j-supha/Desktop/Personal_AI/FFMPEG/llama.cpp/llama-embedding -m /Users/j-supha/Desktop/Personal_AI/FFMPEG/models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt {}",
+        shell_escape::escape(text.into())
+    );
+
     let output = Command::new("sh")
         .arg("-c")
-        .arg(format!("/Users/j-supha/Desktop/Personal_AI/FFMPEG/llama.cpp/llama-embedding -m /Users/j-supha/Desktop/Personal_AI/FFMPEG/models/EMB/gguf/mxbai-embed-large-v1-f16.gguf --prompt '{}'", text))
+        .arg(&command)
         .output()
         .expect("Failed to execute command");
 
     let output = String::from_utf8_lossy(&output.stdout);
+
+    write_error_to_file(output.to_string().as_str()).expect("Failed to write to error file");
+
+
     let embeddings = parse_embedding(&output);
-    return Ok(embeddings);
+    Ok(embeddings)
 }
 
 fn percentile(mut numbers: Vec<f32>, percentile: f32) -> Option<f32> {
@@ -334,7 +359,6 @@ pub async fn sem_tag_process(
     let mut return_vec: Vec<String> = Vec::new();
 
     let mut ninety: Vec<f32> = Vec::new();
-    println!("The text is {:?}", text);
     let my_vec = split_via_sentences(&text);
     println!("The length of the vector is {:?}", my_vec.len());
     let mut temp = EmbeddingMiddle::new_empty();
@@ -344,20 +368,23 @@ pub async fn sem_tag_process(
             let cur_emb = embeddings(&my_vec[i]).await.map_err(|e| AppError::Other(e.to_string()))?;
             let next_emb = embeddings(&my_vec[i+1]).await.map_err(|e| AppError::Other(e.to_string()))?;
             let cosine_similarity = cosine_similarity(&cur_emb, &next_emb);
+            println!("The cosine similarity is {:?}", cosine_similarity);
             ninety.push(cosine_similarity.clone());
             total.push(EmbeddingMiddle::new(my_vec[i].clone(), Some(cur_emb),Some(cosine_similarity)));
-            temp = EmbeddingMiddle::new_embedding(my_vec[i].clone(), Some(next_emb));
+            temp = EmbeddingMiddle::new_embedding(my_vec[i+1].clone(), Some(next_emb));
         }else {
             let next_emb = embeddings(&my_vec[i+1]).await.expect("Failed to get the model embeddings");
             let store = temp.embedding.clone();
             let cosine_similarity = cosine_similarity(&temp.embedding.unwrap(), &next_emb);
+            println!("The cosine similarity is {:?}", cosine_similarity);
             ninety.push(cosine_similarity.clone());
             total.push(EmbeddingMiddle::new(my_vec[i].clone(),store ,Some(cosine_similarity)));
             temp = EmbeddingMiddle::new_embedding(my_vec[i+1].clone(), Some(next_emb));
         }
     }
+
+
     let thresh = percentile(ninety, 0.9).expect("Failed to get the 90th percentile");
-    println!("The threshold is {:?}", thresh);
     let mut str_buf = String::new();
     for items in total {
         if items.distance_to_next.unwrap() < thresh {
@@ -490,6 +517,7 @@ async fn chat(groq_key: String, input: Vec<(String, Option<Vec<f32>>)>) -> Resul
 
 pub async fn chat_or_summarize(input: Vec<(String,Option<Vec<f32>>)>, groq_key: String) -> Result<(), AppError> {
 
+    println!("Here is my action plan");
 
     loop {
         println!("Enter 1 for a sumarization, 2 for an action plan, 3 to chat with the transcript, 4 to exit");

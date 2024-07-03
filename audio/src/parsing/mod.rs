@@ -123,18 +123,24 @@ impl Sst {
                     }
                     chat_or_summarize(combined_data, self.groq_key.clone()).await?;
                 } else {
-
+                    println!("Semantic RAG");
                     let total = sem_tag_process(text.clone()).await?;
+                    println!("Finished processing semantic rag");
 
                     let mut combined_data: Vec<(String, Option<Vec<f32>>)> = Vec::new();
 
+                    println!("Combined data: {:?}", combined_data);
+
                     for (index,items) in total.into_iter().enumerate() {
+                        println!("Moving through the loop {:?}", items);
                         let embedding = embeddings(&items).await?;
+                        println!("Clearly better error handling is needed here or even no errors at all");
                         let primary_key = format!("{}_{}", index, &self.audio_file);
                         let secondary_key  = format!("SEMTAG_{}", &self.audio_file);
                         db.insert(&primary_key, &secondary_key, &items, Some(&embedding)).await?;
                         combined_data.push((items, Some(embedding)));
                     }
+                    println!("Finished inserting into database");
                     chat_or_summarize(combined_data, self.groq_key.clone()).await?;
                 }
             }

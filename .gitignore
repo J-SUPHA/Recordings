@@ -2,4 +2,8 @@
 whisper.cpp
 pyaudio
 audio/target
-*/target/*
+**/target/**
+tame.py
+**.cpp
+./audio/src/check/*
+./audio/src/database_health.py
