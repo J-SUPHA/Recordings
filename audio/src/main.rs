@@ -39,7 +39,7 @@ impl Control {
                     let _ = self.full_pipeline().await;
                 }
                 "audio" => {
-                    let _ = self.text_file().await;
+                    let _ = self.audio().await;
                 }
                 "txt" => {
                     let _ = self.txt().await;
@@ -123,7 +123,7 @@ impl Control {
         Ok(())
     }
 
-    async fn text_file(&mut self) -> Result<(), AppError> {
+    async fn audio(&mut self) -> Result<(), AppError> {
         loop {
             println!("Type the path to the wav file that you want to change. If the wav file is not found you will be asked to type it again. Type exit to exit:");
             io::stdout().flush().unwrap();
